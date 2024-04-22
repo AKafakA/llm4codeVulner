@@ -2,7 +2,7 @@ Forked from this project https://github.com/LauraWartschinski/VulnerabilityDetec
 
 And plan to apply the llm to generate accordingly fix.
 
-To start the llm training examples with the given data
+To start the llm prompt fine tuning with the given data sql buggy data
 
 ```
 conda env create -f environment/nvidia/environment.yml
