@@ -46,5 +46,5 @@ outputs = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
 print("Train model output :", tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 untrained_model = T5ForConditionalGeneration.from_pretrained(model_name)
-outputs = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
+outputs = untrained_model.generate(prompt_prefix + input_ids, max_new_tokens=max_new_token_length)
 print("Raw model output", tokenizer.decode(outputs[0], skip_special_tokens=True))

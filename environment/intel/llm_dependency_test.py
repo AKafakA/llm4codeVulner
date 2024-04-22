@@ -1,8 +1,11 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+# Scripts to test llm on Intel A780 by following
+#   https://www.intel.com/content/www/us/en/developer/articles/technical/llama2-inference-with-pytorch-on-intel-gpus.html
 ############# code changes ###############
 import intel_extension_for_pytorch as ipex
+
 # verify Intel Arc GPU
 print(torch.__version__)
 print(ipex.__version__)
@@ -21,7 +24,10 @@ with torch.inference_mode(), torch.no_grad(), torch.autocast(
         ##########################################
         enabled=True
 ):
-    text = "You may have heard of Schrodinger cat mentioned in a thought experiment in quantum physics. Briefly, according to the Copenhagen interpretation of quantum mechanics, the cat in a sealed box is simultaneously alive and dead until we open the box and observe the cat. The macrostate of cat (either alive or dead) is determined at the moment we observe the cat."
+    text = ("You may have heard of Schrodinger cat mentioned in a thought experiment in quantum physics. Briefly, "
+            "according to the Copenhagen interpretation of quantum mechanics, the cat in a sealed box is "
+            "simultaneously alive and dead until we open the box and observe the cat. The macrostate of cat (either "
+            "alive or dead) is determined at the moment we observe the cat.")
     input_ids = tokenizer(text, return_tensors="pt").input_ids
     ############# code changes ###############
     # move to Intel Arc GPU
