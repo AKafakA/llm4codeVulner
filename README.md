@@ -9,4 +9,5 @@ conda env create -f environment/nvidia/environment.yml
 cd llm
 python3 train.py
 ```
+GPU/TPU is not required for the testing examples
 
