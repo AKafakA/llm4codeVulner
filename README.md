@@ -13,3 +13,8 @@ python3 train.py
 ```
 GPU/TPU is not required for the testing examples
 
+If want to test with model which require access, please apply it at hugging face and then login huggine face by
+
+```
+huggingface-cli login
+```
