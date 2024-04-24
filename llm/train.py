@@ -12,6 +12,9 @@ lr = 5e-5
 model_name = "Salesforce/codet5-small"
 model_type = ModelType.T5_CONDITIONAL_GENERATION
 
+# model_name = "google/codegemma-2b"
+# model_type = ModelType.CAUSAL_ML
+
 save_directory = "./models/{}".format(vulnerability + "-" + model_name)
 data_file = "../data/{}.json".format(vulnerability)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
