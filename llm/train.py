@@ -48,5 +48,5 @@ print("Train model output :", tokenizer.decode(outputs[0], skip_special_tokens=T
 
 
 untrained_model = get_model(model_name, model_type=model_type)
-outputs = untrained_model.generate(prompt_prefix + input_ids, max_new_tokens=max_new_token_length)
+outputs = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
 print("Raw model output", tokenizer.decode(outputs[0], skip_special_tokens=True))
