@@ -5,9 +5,11 @@ And plan to apply the llm to generate accordingly fix.
 To start the llm prompt fine tuning with the given data sql buggy data
 
 ```
+cd cd llm4codeVulner/
 conda env create -f environment/nvidia/environment.yml
+conda activate llm
 cd llm
-python3 train_example.py
+python3 train.py
 ```
 GPU/TPU is not required for the testing examples
 
