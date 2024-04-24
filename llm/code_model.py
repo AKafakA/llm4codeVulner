@@ -1,4 +1,5 @@
-from transformers import T5ForConditionalGeneration, AdamW, get_linear_schedule_with_warmup
+from transformers import AdamW, get_linear_schedule_with_warmup
+from utils import get_model
 import pytorch_lightning as pl
 
 
@@ -7,7 +8,8 @@ class CodeModel(pl.LightningModule):
                  training_dataloader,
                  validating_dataloader,
                  testing_dataloader,
-                 model,
+                 model_name,
+                 model_type,
                  lr=5e-5,
                  num_train_epochs=100,
                  warmup_steps=1000):
@@ -15,7 +17,7 @@ class CodeModel(pl.LightningModule):
         self.training_dataloader = training_dataloader
         self.validating_dataloader = validating_dataloader
         self.testing_dataloader = testing_dataloader
-        self.model = model
+        self.model = get_model(model_name, model_type)
         self.lr = lr
         self.num_train_epochs = num_train_epochs
         self.warmup_steps = warmup_steps

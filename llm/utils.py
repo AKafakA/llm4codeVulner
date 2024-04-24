@@ -1,7 +1,9 @@
 import json
+from enum import Enum
 
 from datasets import Dataset
 from torch.utils.data import DataLoader
+from transformers import BertModel, T5ForConditionalGeneration, AutoModelForCausalLM
 
 prompt_prefix = "Please help to Fix this SQL: "
 max_input_length = 256
@@ -10,6 +12,12 @@ max_new_token_length = 48
 
 text_column = 'raw_code'
 label_column = 'fixed_code'
+
+
+class ModelType(Enum):
+    BETR = "bert"
+    T5_CONDITIONAL_GENERATION = "t5_conditional_generation"
+    CAUSAL_ML = "causal_ml"
 
 
 def read_prompts(filename):
@@ -91,3 +99,17 @@ def get_dataloader(dataset, shuffle, batch_size, tokenizer, preprocess_function=
     )
     processed_datasets.set_format(type="torch", columns=['input_ids', 'attention_mask', 'labels'])
     return DataLoader(processed_datasets, shuffle=shuffle, batch_size=batch_size)
+
+
+def get_model(model_name, model_type, save_path=None):
+    model_context = model_name
+    model = None
+    if save_path:
+        model_context = save_path
+    if model_type == ModelType.BETR:
+        model = BertModel.from_pretrained(model_context)
+    if model_type == ModelType.T5_CONDITIONAL_GENERATION:
+        model = T5ForConditionalGeneration.from_pretrained(model_context)
+    if model_type == ModelType.CAUSAL_ML:
+        model = AutoModelForCausalLM.from_pretrained(model_context)
+    return model
