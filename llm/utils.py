@@ -2,8 +2,10 @@ import json
 from enum import Enum
 
 from datasets import Dataset
+from pytorch_lightning import Trainer
 from torch.utils.data import DataLoader
 from transformers import BertModel, T5ForConditionalGeneration, AutoModelForCausalLM
+from pytorch_lightning.strategies import deepspeed
 
 prompt_prefix = "Please help to Fix this SQL: "
 max_input_length = 256
@@ -113,3 +115,30 @@ def get_model(model_name, model_type, save_path=None):
     if model_type == ModelType.CAUSAL_ML:
         model = AutoModelForCausalLM.from_pretrained(model_context)
     return model
+
+
+def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, use_deepspeed=False, accelerator='gpu'):
+    if use_deepspeed:
+        trainer = Trainer(
+            default_root_dir="./" + "models/{}".format(vulnerability + "-" + model_name),
+            callbacks=[lr_monitor],
+            max_epochs=training_epochs,
+            accelerator=accelerator,
+            strategy=deepspeed.DeepSpeedStrategy(
+                stage=3,
+                offload_optimizer=True,
+                offload_parameters=True,
+            ),
+            precision=16,
+        )
+        trainer.strategy.config["zero_force_ds_cpu_optimizer"] = False
+        return trainer
+    else:
+        return Trainer(
+            default_root_dir="./" + "models/{}".format(vulnerability + "-" + model_name),
+            callbacks=[lr_monitor],
+            max_epochs=training_epochs,
+            accelerator=accelerator,
+        )
+
+
