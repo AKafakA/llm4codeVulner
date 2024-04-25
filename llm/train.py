@@ -3,7 +3,7 @@ from utils import (read_prompts, convert_to_dataset, get_dataloader, prompt_pref
                    text_column, label_column, ModelType, get_model)
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
-from pytorch_lightning.plugins import DeepSpeedPlugin
+from pytorch_lightning.strategies import deepspeed
 from code_model import CodeModel
 
 vulnerability = "plain_sql"
@@ -36,7 +36,7 @@ trainer = Trainer(
     default_root_dir="./" + "models/{}".format(vulnerability + "-" + model_name),
     callbacks=[lr_monitor],
     max_epochs=training_epochs,
-    plugins=DeepSpeedPlugin(
+    strategy=deepspeed.DeepSpeedStrategy(
         stage=3,
         offload_optimizer=True,
         offload_parameters=True,
