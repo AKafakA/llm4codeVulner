@@ -89,7 +89,7 @@ def preprocess_prompts(example, tokenizer):
     return model_inputs
 
 
-def get_dataloader(dataset, shuffle, batch_size, tokenizer, preprocess_function=preprocess_prompts):
+def get_dataloader(dataset, shuffle, batch_size, tokenizer, preprocess_function=preprocess_prompts, num_workers=16):
     tokenizer = tokenizer
 
     def preprocess(example):
@@ -100,7 +100,7 @@ def get_dataloader(dataset, shuffle, batch_size, tokenizer, preprocess_function=
         batched=True
     )
     processed_datasets.set_format(type="torch", columns=['input_ids', 'attention_mask', 'labels'])
-    return DataLoader(processed_datasets, shuffle=shuffle, batch_size=batch_size)
+    return DataLoader(processed_datasets, shuffle=shuffle, batch_size=batch_size, num_workers=num_workers)
 
 
 def get_model(model_name, model_type, save_path=None):

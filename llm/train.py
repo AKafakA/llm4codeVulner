@@ -10,9 +10,13 @@ vulnerability = "plain_sql"
 training_epochs = 1
 warmup_steps = 1000
 lr = 5e-5
+accelerator = 'gpu'
+
 # use_deepspeed = False
 # model_name = "Salesforce/codet5-small"
 # model_type = ModelType.T5_CONDITIONAL_GENERATION
+# Can test on cpu since the model is small
+# accelerator = 'gpu'
 
 use_deepspeed = True
 model_name = "google/codegemma-2b"
@@ -38,7 +42,7 @@ model = CodeModel(training_dataloader=train_dataloader, testing_dataloader=test_
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
 trainer = get_pytorch_trainer(vulnerability=vulnerability, training_epochs=training_epochs, model_name=model_name,
-                              lr_monitor=lr_monitor, use_deepspeed=use_deepspeed)
+                              lr_monitor=lr_monitor, use_deepspeed=use_deepspeed, accelerator=accelerator)
 
 trainer.fit(model)
 model.model.save_pretrained(save_directory)
