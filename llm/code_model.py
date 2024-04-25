@@ -1,6 +1,7 @@
 from transformers import AdamW, get_linear_schedule_with_warmup
 from utils import get_model
 import pytorch_lightning as pl
+import torch
 
 
 class CodeModel(pl.LightningModule):
@@ -34,6 +35,7 @@ class CodeModel(pl.LightningModule):
         return loss
 
     def training_step(self, batch, batch_idx):
+        torch.set_grad_enabled(True)
         loss = self.common_step(batch, batch_idx)
         # logs metrics for each training_step,
         # and the average across the epoch

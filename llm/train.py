@@ -18,7 +18,7 @@ accelerator = 'gpu'
 # Can test on cpu since the model is small
 # accelerator = 'gpu'
 
-use_deepspeed = True
+use_deepspeed = False
 model_name = "google/codegemma-2b"
 model_type = ModelType.CAUSAL_ML
 
