@@ -17,9 +17,8 @@ label_column = 'fixed_code'
 
 
 class ModelType(Enum):
-    BETR = "bert"
     T5_CONDITIONAL_GENERATION = "t5_conditional_generation"
-    CAUSAL_ML = "causal_ml"
+    CAUSAL_LM = "CAUSAL_LM"
 
 
 def read_prompts(filename):
@@ -45,8 +44,8 @@ def read_prompts(filename):
         return prompts, labels
 
 
-def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2):
-    total_prompts = len(prompts)
+def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2, data_usage_ratio=1.0):
+    total_prompts = len(prompts) * data_usage_ratio
 
     prompt_id = 0
     train_list, validation_list, test_list = [], [], []
@@ -57,8 +56,10 @@ def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2):
             train_list.append(record)
         elif prompt_id <= total_prompts * (val_ratio + train_ratio):
             validation_list.append(record)
-        else:
+        elif prompt_id <= total_prompts:
             test_list.append(record)
+        else:
+            break
         prompt_id = prompt_id + 1
 
     train_dataset = Dataset.from_list(train_list)
@@ -108,11 +109,9 @@ def get_model(model_name, model_type, save_path=None):
     model = None
     if save_path:
         model_context = save_path
-    if model_type == ModelType.BETR:
-        model = BertModel.from_pretrained(model_context)
     if model_type == ModelType.T5_CONDITIONAL_GENERATION:
         model = T5ForConditionalGeneration.from_pretrained(model_context)
-    if model_type == ModelType.CAUSAL_ML:
+    if model_type == ModelType.CAUSAL_LM:
         model = AutoModelForCausalLM.from_pretrained(model_context)
     return model
 

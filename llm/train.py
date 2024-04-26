@@ -10,6 +10,8 @@ vulnerability = "plain_sql"
 training_epochs = 1
 warmup_steps = 1000
 lr = 5e-5
+# test with small data for check the correctness
+data_usage_ratio = 0.01
 accelerator = 'gpu'
 
 # use_deepspeed = False
@@ -19,8 +21,9 @@ accelerator = 'gpu'
 # accelerator = 'gpu'
 
 use_deepspeed = False
+use_lora = True
 model_name = "google/codegemma-2b"
-model_type = ModelType.CAUSAL_ML
+model_type = ModelType.CAUSAL_LM
 
 if use_deepspeed:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -30,7 +33,7 @@ data_file = "../data/{}.json".format(vulnerability)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 prompts, labels = read_prompts(data_file)
-train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels)
+train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)
 
 train_dataloader = get_dataloader(dataset=train_dataset, shuffle=True, batch_size=8, tokenizer=tokenizer)
 validation_dataloader = get_dataloader(dataset=validation_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
@@ -38,7 +41,7 @@ test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size
 
 model = CodeModel(training_dataloader=train_dataloader, testing_dataloader=test_dataloader,
                   validating_dataloader=validation_dataloader, model_name=model_name, model_type=model_type,
-                  num_train_epochs=training_epochs, lr=lr, warmup_steps=warmup_steps)
+                  num_train_epochs=training_epochs, lr=lr, warmup_steps=warmup_steps, use_lora=use_lora)
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
 trainer = get_pytorch_trainer(vulnerability=vulnerability, training_epochs=training_epochs, model_name=model_name,

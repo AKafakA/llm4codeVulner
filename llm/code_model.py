@@ -1,7 +1,8 @@
 from transformers import AdamW, get_linear_schedule_with_warmup
-from utils import get_model
+from utils import get_model, ModelType
 import pytorch_lightning as pl
 import torch
+from peft import LoraConfig, LoraModel
 
 
 class CodeModel(pl.LightningModule):
@@ -11,6 +12,7 @@ class CodeModel(pl.LightningModule):
                  testing_dataloader,
                  model_name,
                  model_type,
+                 use_lora=False,
                  lr=5e-5,
                  num_train_epochs=100,
                  warmup_steps=1000):
@@ -19,6 +21,18 @@ class CodeModel(pl.LightningModule):
         self.validating_dataloader = validating_dataloader
         self.testing_dataloader = testing_dataloader
         self.model = get_model(model_name, model_type)
+        if use_lora:
+            task_type = model_type
+            if model_type == ModelType.T5_CONDITIONAL_GENERATION:
+                task_type = "SEQ_2_SEQ_LM"
+            peft_config = LoraConfig(
+              task_type=task_type,
+              r=8,
+              lora_alpha=32,
+              inference_mode=False,
+              lora_dropout=0.01,
+            )
+            self.model = LoraModel(self.model, peft_config, "default")
         self.lr = lr
         self.num_train_epochs = num_train_epochs
         self.warmup_steps = warmup_steps
