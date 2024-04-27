@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, GemmaTokenizer
+from transformers import AutoTokenizer
 from utils import (read_prompts, convert_to_dataset, get_dataloader, prompt_prefix, max_new_token_length,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer)
 from pytorch_lightning.callbacks import LearningRateMonitor

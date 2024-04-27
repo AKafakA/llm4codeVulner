@@ -4,10 +4,10 @@ from enum import Enum
 from datasets import Dataset
 from pytorch_lightning import Trainer
 from torch.utils.data import DataLoader
-from transformers import BertModel, T5ForConditionalGeneration, AutoModelForCausalLM
+from transformers import T5ForConditionalGeneration, AutoModelForCausalLM
 from pytorch_lightning.strategies import deepspeed
 
-prompt_prefix = "Please help to Fix this SQL: "
+prompt_prefix = "Please help to Fix this code with vulnerability: "
 max_input_length = 256
 max_target_length = 256
 max_new_token_length = 48
