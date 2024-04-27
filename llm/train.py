@@ -22,10 +22,11 @@ accelerator = 'gpu'
 
 use_deepspeed = False
 use_lora = True
+enable_parallelism_tokenizer = False
 model_name = "google/codegemma-2b"
 model_type = ModelType.CAUSAL_LM
 
-if use_deepspeed:
+if not enable_parallelism_tokenizer:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 save_directory = "./models/{}".format(vulnerability + "-" + model_name)
