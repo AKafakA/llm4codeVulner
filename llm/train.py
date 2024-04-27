@@ -7,11 +7,11 @@ import os
 
 
 vulnerability = "plain_sql"
-training_epochs = 1
+training_epochs = 10
 warmup_steps = 1000
 lr = 5e-5
 # test with small data for check the correctness
-data_usage_ratio = 0.01
+data_usage_ratio = 1.0
 accelerator = 'gpu'
 
 # use_deepspeed = False

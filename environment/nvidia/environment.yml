@@ -144,7 +144,7 @@ dependencies:
       - pydantic==2.7.1
       - pydantic-core==2.18.2
       - pynvml==11.5.0
-      - pytorch-lightning==1.9.4
+      - pytorch-lightning==2.2.3
       - regex==2024.4.16
       - safetensors==0.4.3
       - sympy==1.12
