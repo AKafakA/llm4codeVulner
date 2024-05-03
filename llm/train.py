@@ -72,12 +72,12 @@ if enable_evaluation:
     predictions = []
     baseline_predictions = []
     for test_example in test_dataset:
-        references.append(test_example[label_column])
         input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
-        outputs = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-        predictions.append(tokenizer.decode(outputs[0], skip_special_tokens=True))
+        output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
         baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-        baseline_predictions.append(tokenizer.decode(baseline_output, skip_special_tokens=True))
+        references.append(test_example[label_column])
+        predictions.append(tokenizer.decode(output[0], skip_special_tokens=True))
+        baseline_predictions.append(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
 
     print("##################" + "Train model output metrics" + "##################")
 

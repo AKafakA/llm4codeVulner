@@ -144,7 +144,7 @@ def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, 
 
 
 def print_metrics(references, predictions, lang):
-    code_bleu_score = get_code_bleu_from_list(references, predictions, lang=lang)
+    code_bleu_score = get_code_bleu_from_list([references], predictions, lang=lang)
     code_bert_score_precision, code_bert_score_recall, code_bert_score_f1, code_bert_score_f3 = (
         get_code_bert_from_list(references, predictions, lang=lang))
     print("Code bleu score : ", code_bleu_score)

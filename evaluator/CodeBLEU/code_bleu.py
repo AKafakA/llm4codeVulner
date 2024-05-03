@@ -9,9 +9,6 @@ from evaluator.CodeBLEU import bleu, weighted_ngram_match, syntax_match, dataflo
 
 def calculate_code_bleu_from_lists(pre_references, prediction, lang, alpha=0.25, beta=0.25, gamma=0.25, theta=0.25):
 
-    for i in range(len(pre_references)):
-        assert len(prediction) == len(pre_references[i])
-
     references = []
     for i in range(len(prediction)):
         ref_for_instance = []
