@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from transformers import T5ForConditionalGeneration, AutoModelForCausalLM
 from pytorch_lightning.strategies import deepspeed
 
-from llm.evaluator import get_code_bleu_from_list, get_code_bert_from_list
+from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from_list
 
 prompt_prefix = "Please help to Fix this code with vulnerability: "
 max_input_length = 256

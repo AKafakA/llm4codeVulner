@@ -18,7 +18,7 @@ from fractions import Fraction
 import warnings
 from collections import Counter
 
-from llm.evaluator.CodeBLEU.utils import ngrams
+from evaluator.CodeBLEU.utils import ngrams
 
 
 def sentence_bleu(

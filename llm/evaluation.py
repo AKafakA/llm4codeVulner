@@ -1,4 +1,4 @@
-from llm.evaluator import get_bleu_score, get_code_bleu, get_code_bert
+from evaluator.metrics_getter import get_bleu_score, get_code_bleu, get_code_bert
 
 vulnerability = "plain_sql"
 model_name = "Salesforce/codet5-small"

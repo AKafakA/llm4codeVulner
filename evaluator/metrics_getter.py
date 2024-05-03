@@ -1,6 +1,6 @@
 import code_bert_score
 from bleu import _bleu
-from llm.evaluator.CodeBLEU.code_bleu import calculate_code_bleu, calculate_code_bleu_from_lists
+from evaluator.CodeBLEU.code_bleu import calculate_code_bleu, calculate_code_bleu_from_lists
 from torch import mean
 
 
