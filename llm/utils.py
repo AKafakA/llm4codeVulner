@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader
 from transformers import T5ForConditionalGeneration, AutoModelForCausalLM
 from pytorch_lightning.strategies import deepspeed
 
+from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from_list
+
 prompt_prefix = "Please help to Fix this code with vulnerability: "
 max_input_length = 256
 max_target_length = 256
@@ -140,4 +142,14 @@ def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, 
             accelerator=accelerator,
         )
 
+
+def print_metrics(references, predictions, lang):
+    code_bleu_score = get_code_bleu_from_list(references, predictions, lang=lang)
+    code_bert_score_precision, code_bert_score_recall, code_bert_score_f1, code_bert_score_f3 = (
+        get_code_bert_from_list(references, predictions, lang=lang))
+    print("Code bleu score : ", code_bleu_score)
+    print("Average Code Bert score precision : ", code_bert_score_precision)
+    print("Average Code Bert score recall : ", code_bert_score_recall)
+    print("Average Code Bert score f1 : ", code_bert_score_f1)
+    print("Average Code Bert score f3 : ", code_bert_score_f3)
 
