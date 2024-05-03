@@ -77,9 +77,9 @@ print("Raw model output", tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 if enable_evaluation:
 
-    input_file_path = "../data/test/{}/input.json".format(vulnerability)
-    references_file_path = "../data/test/{}/references.json".format(vulnerability)
-    prediction_file_path = "../data/test/{}/prediction.json".format(vulnerability)
+    input_file_path = "data/test/{}/input.json".format(vulnerability)
+    references_file_path = "data/test/{}/references.json".format(vulnerability)
+    prediction_file_path = "data/test/{}/prediction.json".format(vulnerability)
 
     references = []
     predictions = []
