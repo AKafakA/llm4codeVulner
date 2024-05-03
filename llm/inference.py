@@ -20,7 +20,7 @@ train_ratio = 0.6
 val_ratio = 0.2
 prompts, labels = read_prompts(data_file)
 train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)
-test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
+test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=1, tokenizer=tokenizer)
 
 trained_model = get_model(model_name, model_type, save_path=save_directory)
 
