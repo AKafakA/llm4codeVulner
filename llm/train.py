@@ -13,18 +13,17 @@ lr = 5e-5
 # test with small data for check the correctness
 data_usage_ratio = 1.0
 accelerator = 'gpu'
+enable_parallelism_tokenizer = False
+use_deepspeed = False
+use_lora = False
 
-# use_deepspeed = False
-# model_name = "Salesforce/codet5-small"
-# model_type = ModelType.T5_CONDITIONAL_GENERATION
+model_name = "Salesforce/codet5-small"
+model_type = ModelType.T5_CONDITIONAL_GENERATION
 # Can test on cpu since the model is small
 # accelerator = 'gpu'
 
-use_deepspeed = False
-use_lora = True
-enable_parallelism_tokenizer = False
-model_name = "google/codegemma-2b"
-model_type = ModelType.CAUSAL_LM
+# model_name = "google/codegemma-2b"
+# model_type = ModelType.CAUSAL_LM
 
 if not enable_parallelism_tokenizer:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
