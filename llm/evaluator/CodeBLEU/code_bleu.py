@@ -1,9 +1,8 @@
 # Copyright (c) Microsoft Corporation. 
 # Licensed under the MIT license.
-import os
 
-import evaluator
-from evaluator.CodeBLEU import bleu, weighted_ngram_match, syntax_match, dataflow_match, parser
+from llm import evaluator
+from llm.evaluator.CodeBLEU import bleu, weighted_ngram_match, syntax_match, dataflow_match
 
 
 # -*- coding:utf-8 -*-

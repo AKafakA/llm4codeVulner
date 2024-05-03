@@ -4,7 +4,6 @@ from utils import (read_prompts, convert_to_dataset, get_dataloader, prompt_pref
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
 import os
-from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from_list
 
 vulnerability = "plain_sql"
 lang = 'python'

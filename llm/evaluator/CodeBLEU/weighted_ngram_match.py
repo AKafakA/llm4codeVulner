@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) Microsoft Corporation. 
+# Licensed under the MIT license.
+
 # Natural Language Toolkit: BLEU Score
 #
 # Copyright (C) 2001-2020 NLTK Project
@@ -15,9 +18,7 @@ from fractions import Fraction
 import warnings
 from collections import Counter
 
-import pdb
-
-from evaluator.CodeBLEU.utils import ngrams
+from llm.evaluator.CodeBLEU.utils import ngrams
 
 
 def sentence_bleu(
@@ -157,9 +158,9 @@ def corpus_bleu(
         # For each order of ngram, calculate the numerator and
         # denominator for the corpus-level modified precision.
         for i, _ in enumerate(weights, start=1):
-            p_i = modified_precision(references, hypothesis, i)
-            p_numerators[i] += p_i.numerator
-            p_denominators[i] += p_i.denominator
+            p_i_numeraotr, p_i_denominator = modified_recall(references, hypothesis, i)
+            p_numerators[i] += p_i_numeraotr
+            p_denominators[i] += p_i_denominator
 
         # Calculate the hypothesis length and the closest reference length.
         # Adds them to the corpus-level hypothesis and reference counts.
@@ -176,9 +177,9 @@ def corpus_bleu(
         if hyp_lengths < 4 and weights == (0.25, 0.25, 0.25, 0.25):
             weights = (1 / hyp_lengths,) * hyp_lengths
 
-    # Collects the various precision values for the different ngram orders.
+    # Collects the various recall values for the different ngram orders.
     p_n = [
-        Fraction(p_numerators[i], p_denominators[i], _normalize=False)
+        (p_numerators[i], p_denominators[i])
         for i, _ in enumerate(weights, start=1)
     ]
 
@@ -198,73 +199,15 @@ def corpus_bleu(
     p_n = smoothing_function(
         p_n, references=references, hypothesis=hypothesis, hyp_len=hyp_lengths
     )
-    s = (w_i * math.log(p_i) for w_i, p_i in zip(weights, p_n))
+    # pdb.set_trace()
+    s = (w_i * math.log(p_i[0]/p_i[1]) for w_i, p_i in zip(weights, p_n))
     s = bp * math.exp(math.fsum(s))
     return s
 
 
-def modified_precision(references, hypothesis, n):
+def modified_recall(references, hypothesis, n):
     """
-    Calculate modified ngram precision.
-    The normal precision method may lead to some wrong translations with
-    high-precision, e.g., the translation, in which a word of reference
-    repeats several times, has very high precision.
-    This function only returns the Fraction object that contains the numerator
-    and denominator necessary to calculate the corpus-level precision.
-    To calculate the modified precision for a single pair of hypothesis and
-    references, cast the Fraction object into a float.
-    The famous "the the the ... " example shows that you can get BLEU precision
-    by duplicating high frequency words.
-        >>> reference1 = 'the cat is on the mat'.split()
-        >>> reference2 = 'there is a cat on the mat'.split()
-        >>> hypothesis1 = 'the the the the the the the'.split()
-        >>> references = [reference1, reference2]
-        >>> float(modified_precision(references, hypothesis1, n=1)) # doctest: +ELLIPSIS
-        0.2857...
-    In the modified n-gram precision, a reference word will be considered
-    exhausted after a matching hypothesis word is identified, e.g.
-        >>> reference1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-        ...               'ensures', 'that', 'the', 'military', 'will',
-        ...               'forever', 'heed', 'Party', 'commands']
-        >>> reference2 = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-        ...               'guarantees', 'the', 'military', 'forces', 'always',
-        ...               'being', 'under', 'the', 'command', 'of', 'the',
-        ...               'Party']
-        >>> reference3 = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-        ...               'army', 'always', 'to', 'heed', 'the', 'directions',
-        ...               'of', 'the', 'party']
-        >>> hypothesis = 'of the'.split()
-        >>> references = [reference1, reference2, reference3]
-        >>> float(modified_precision(references, hypothesis, n=1))
-        1.0
-        >>> float(modified_precision(references, hypothesis, n=2))
-        1.0
-    An example of a normal machine translation hypothesis:
-        >>> hypothesis1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'which',
-        ...               'ensures', 'that', 'the', 'military', 'always',
-        ...               'obeys', 'the', 'commands', 'of', 'the', 'party']
-        >>> hypothesis2 = ['It', 'is', 'to', 'insure', 'the', 'troops',
-        ...               'forever', 'hearing', 'the', 'activity', 'guidebook',
-        ...               'that', 'party', 'direct']
-        >>> reference1 = ['It', 'is', 'a', 'guide', 'to', 'action', 'that',
-        ...               'ensures', 'that', 'the', 'military', 'will',
-        ...               'forever', 'heed', 'Party', 'commands']
-        >>> reference2 = ['It', 'is', 'the', 'guiding', 'principle', 'which',
-        ...               'guarantees', 'the', 'military', 'forces', 'always',
-        ...               'being', 'under', 'the', 'command', 'of', 'the',
-        ...               'Party']
-        >>> reference3 = ['It', 'is', 'the', 'practical', 'guide', 'for', 'the',
-        ...               'army', 'always', 'to', 'heed', 'the', 'directions',
-        ...               'of', 'the', 'party']
-        >>> references = [reference1, reference2, reference3]
-        >>> float(modified_precision(references, hypothesis1, n=1)) # doctest: +ELLIPSIS
-        0.9444...
-        >>> float(modified_precision(references, hypothesis2, n=1)) # doctest: +ELLIPSIS
-        0.5714...
-        >>> float(modified_precision(references, hypothesis1, n=2)) # doctest: +ELLIPSIS
-        0.5882352941176471
-        >>> float(modified_precision(references, hypothesis2, n=2)) # doctest: +ELLIPSIS
-        0.07692...
+    Calculate modified ngram recall.
     :param references: A list of reference translations.
     :type references: list(list(str))
     :param hypothesis: A hypothesis translation.
@@ -276,29 +219,52 @@ def modified_precision(references, hypothesis, n):
     """
     # Extracts all ngrams in hypothesis
     # Set an empty Counter if hypothesis is empty.
+    # pdb.set_trace()
+    numerator = 0
+    denominator = 0
 
     counts = Counter(ngrams(hypothesis, n)) if len(hypothesis) >= n else Counter()
     # Extract a union of references' counts.
     # max_counts = reduce(or_, [Counter(ngrams(ref, n)) for ref in references])
     max_counts = {}
-    for reference in references:
+    for reference_and_weights in references:
+        reference = reference_and_weights[0]
+        weights = reference_and_weights[1]
         reference_counts = (
             Counter(ngrams(reference, n)) if len(reference) >= n else Counter()
         )
-        for ngram in counts:
-            max_counts[ngram] = max(max_counts.get(ngram, 0), reference_counts[ngram])
+        # for ngram in reference_counts:
+        #     max_counts[ngram] = max(max_counts.get(ngram, 0), counts[ngram])
+        clipped_counts = {
+            ngram: min(count, counts[ngram]) for ngram, count in reference_counts.items()
+        }
+        # reweight
+        if n == 1 and len(weights) == len(reference_counts):
+            def weighted_sum(weights, counts):
+                sum_counts = 0
+                for ngram, count in counts.items():
+                    sum_counts += count * (weights[ngram[0]] if ngram[0] in weights else 1)
+                return sum_counts
 
-    # Assigns the intersection between hypothesis and references' counts.
-    clipped_counts = {
-        ngram: min(count, max_counts[ngram]) for ngram, count in counts.items()
-    }
+            numerator += weighted_sum(weights, clipped_counts)
+            denominator += max(1, weighted_sum(weights, reference_counts))
 
-    numerator = sum(clipped_counts.values())
-    # Ensures that denominator is minimum 1 to avoid ZeroDivisionError.
-    # Usually this happens when the ngram order is > len(reference).
-    denominator = max(1, sum(counts.values()))
+        else:
+            numerator += sum(clipped_counts.values())
+            denominator += max(1, sum(reference_counts.values()))
 
-    return Fraction(numerator, denominator, _normalize=False)
+        # # Assigns the intersection between hypothesis and references' counts.
+        # clipped_counts = {
+        #     ngram: min(count, max_counts[ngram]) for ngram, count in counts.items()
+        # }
+
+        # numerator += sum(clipped_counts.values())
+        # # Ensures that denominator is minimum 1 to avoid ZeroDivisionError.
+        # # Usually this happens when the ngram order is > len(reference).
+        # denominator += max(1, sum(counts.values()))
+
+    #return Fraction(numerator, denominator, _normalize=False)
+    return numerator, denominator
 
 
 def closest_ref_length(references, hyp_len):
@@ -455,7 +421,7 @@ class SmoothingFunction:
         """
         p_n_new = []
         for i, p_i in enumerate(p_n):
-            if p_i.numerator != 0:
+            if p_i[0] != 0:
                 p_n_new.append(p_i)
             else:
                 _msg = str(
@@ -479,8 +445,8 @@ class SmoothingFunction:
         Smoothing method 1: Add *epsilon* counts to precision with 0 counts.
         """
         return [
-            (p_i.numerator + self.epsilon) / p_i.denominator
-            if p_i.numerator == 0
+            ((p_i[0] + self.epsilon),  p_i[1])
+            if p_i[0] == 0
             else p_i
             for p_i in p_n
         ]
@@ -493,7 +459,7 @@ class SmoothingFunction:
         skip-bigram statistics. In ACL04.
         """
         return [
-            Fraction(p_i.numerator + 1, p_i.denominator + 1, _normalize=False)
+            (p_i[0] + 1, p_i[1] + 1)
             for p_i in p_n
         ]
 

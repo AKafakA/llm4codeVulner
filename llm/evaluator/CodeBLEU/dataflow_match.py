@@ -1,12 +1,11 @@
 # Copyright (c) Microsoft Corporation. 
 # Licensed under the MIT license.
-import evaluator
-from evaluator.CodeBLEU.parser import DFG_python, DFG_java, DFG_ruby, DFG_go, DFG_php, DFG_javascript, DFG_csharp
-from evaluator.CodeBLEU.parser  import (remove_comments_and_docstrings,
-                   tree_to_token_index,
-                   index_to_code_token)
+from llm import evaluator
+from llm.evaluator.CodeBLEU.parser import DFG_python, DFG_java, DFG_ruby, DFG_go, DFG_php, DFG_javascript, DFG_csharp
+from llm.evaluator.CodeBLEU.parser import (remove_comments_and_docstrings,
+                                           tree_to_token_index,
+                                           index_to_code_token)
 from tree_sitter import Language, Parser
-import pdb
 
 dfg_function = {
     'python' : DFG_python,
