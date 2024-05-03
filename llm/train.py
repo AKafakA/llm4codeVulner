@@ -37,7 +37,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 prompts, labels = read_prompts(data_file)
 train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)
 
-train_dataloader = get_dataloader(dataset=train_dataset, shuffle=True, batch_size=4, tokenizer=tokenizer)
+train_dataloader = get_dataloader(dataset=train_dataset, shuffle=True, batch_size=8, tokenizer=tokenizer)
 validation_dataloader = get_dataloader(dataset=validation_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
 test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
 
@@ -81,8 +81,8 @@ if enable_evaluation:
 
     print("##################" + "Train model output metrics" + "##################")
 
-    print_metrics(references, predictions, baseline_predictions)
+    print_metrics(references, predictions, lang)
 
     print("##################" + "Raw model output metrics" + "##################")
 
-    print_metrics(references, baseline_predictions, baseline_predictions)
+    print_metrics(references, baseline_predictions, lang)

@@ -11,10 +11,10 @@ def get_code_bert(reference_file, prediction_file, lang='python'):
 
 def get_code_bert_from_list(references, predictions, lang='python'):
     precision, recall, F1, F3 = code_bert_score.score(cands=predictions, refs=references, lang=lang)
-    avg_pre = mean(precision)
-    avg_rec = mean(recall)
-    avg_f1 = mean(F1)
-    avg_f3 = mean(F3)
+    avg_pre = mean(precision).item()
+    avg_rec = mean(recall).item()
+    avg_f1 = mean(F1).item()
+    avg_f3 = mean(F3).item()
     return avg_pre, avg_rec, avg_f1, avg_f3
 
 
