@@ -16,6 +16,7 @@ data_usage_ratio = 1.0
 accelerator = 'gpu'
 enable_parallelism_tokenizer = False
 enable_evaluation = False
+save_output = False
 use_deepspeed = False
 use_lora = False
 
@@ -68,16 +69,28 @@ outputs = untrained_model.generate(input_ids, max_new_tokens=max_new_token_lengt
 print("Raw model output", tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 if enable_evaluation:
+
+    input_file_path = "../data/test/{}/input.json".format(vulnerability)
+    references_file_path = "../data/test/{}/references.json".format(vulnerability)
+    prediction_file_path = "../data/test/{}/prediction.json".format(vulnerability)
+
     references = []
     predictions = []
     baseline_predictions = []
     for test_example in test_dataset:
-        input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
-        output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-        baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-        references.append(test_example[label_column])
-        predictions.append(tokenizer.decode(output[0], skip_special_tokens=True))
-        baseline_predictions.append(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
+        with (open(input_file_path, 'w') as input_file,
+              open(references_file_path, 'w') as references_file, open(prediction_file_path, 'w') as prediction_file):
+
+            input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
+            output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
+            baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
+            references.append(test_example[label_column])
+            predictions.append(tokenizer.decode(output[0], skip_special_tokens=True))
+            baseline_predictions.append(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
+            if save_output:
+                references_file.write(test_example[label_column])
+                input_file.write(test_example[text_column])
+                prediction_file.write(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
     print("##################" + "Train model output metrics" + "##################")
 
