@@ -1,5 +1,5 @@
 from transformers import AutoTokenizer
-from utils import (read_prompts, convert_to_dataset, get_dataloader, prompt_prefix, max_new_token_length,
+from utils import (read_prompts, convert_to_dataset, get_dataloader, max_new_token_length,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer, print_metrics)
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
@@ -7,6 +7,9 @@ import os
 
 vulnerability = "plain_sql"
 lang = 'python'
+prompt_prefix = "Please help to Fix this Python: "
+if vulnerability.endswith("sql"):
+    prompt_prefix = "Please help to Fix this SQL code called in Python: "
 
 training_epochs = 10
 warmup_steps = 1000
@@ -38,9 +41,12 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 prompts, labels = read_prompts(data_file)
 train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)
 
-train_dataloader = get_dataloader(dataset=train_dataset, shuffle=True, batch_size=8, tokenizer=tokenizer)
-validation_dataloader = get_dataloader(dataset=validation_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
-test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=2, tokenizer=tokenizer)
+train_dataloader = get_dataloader(dataset=train_dataset, shuffle=True, batch_size=8,
+                                  prompt_prefix=prompt_prefix, tokenizer=tokenizer)
+validation_dataloader = get_dataloader(dataset=validation_dataset, shuffle=False, batch_size=2,
+                                       prompt_prefix=prompt_prefix, tokenizer=tokenizer)
+test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=2,
+                                 prompt_prefix=prompt_prefix, tokenizer=tokenizer)
 
 model = CodeModel(training_dataloader=train_dataloader, testing_dataloader=test_dataloader,
                   validating_dataloader=validation_dataloader, model_name=model_name, model_type=model_type,

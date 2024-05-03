@@ -9,7 +9,6 @@ from pytorch_lightning.strategies import deepspeed
 
 from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from_list
 
-prompt_prefix = "Please help to Fix this code with vulnerability: "
 max_input_length = 256
 max_target_length = 256
 max_new_token_length = 48
@@ -70,7 +69,7 @@ def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2, data_usa
     return train_dataset, validation_dataset, test_dataset
 
 
-def preprocess_prompts(example, tokenizer):
+def preprocess_prompts(example, tokenizer, prompt_prefix):
     prefix = prompt_prefix
     codes = example['raw_code']
     fix = example['fixed_code']
@@ -92,11 +91,12 @@ def preprocess_prompts(example, tokenizer):
     return model_inputs
 
 
-def get_dataloader(dataset, shuffle, batch_size, tokenizer, preprocess_function=preprocess_prompts, num_workers=16):
+def get_dataloader(dataset, shuffle, batch_size, tokenizer, prompt_prefix,
+                   preprocess_function=preprocess_prompts, num_workers=16):
     tokenizer = tokenizer
 
     def preprocess(example):
-        return preprocess_function(example, tokenizer)
+        return preprocess_function(example, tokenizer, prompt_prefix=prompt_prefix)
 
     processed_datasets = dataset.map(
         preprocess,
