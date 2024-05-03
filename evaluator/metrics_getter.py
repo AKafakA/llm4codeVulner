@@ -1,5 +1,4 @@
 import code_bert_score
-from bleu import _bleu
 from evaluator.CodeBLEU.code_bleu import calculate_code_bleu, calculate_code_bleu_from_lists
 from torch import mean
 
@@ -17,10 +16,6 @@ def get_code_bert_from_list(references, predictions, lang='python'):
     avg_f1 = mean(F1)
     avg_f3 = mean(F3)
     return avg_pre, avg_rec, avg_f1, avg_f3
-
-
-def get_bleu_score(ref_file, trans_file):
-    return _bleu(ref_file, trans_file)
 
 
 def get_code_bleu(reference_file, prediction_file, lang='python'):

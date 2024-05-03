@@ -30,8 +30,8 @@ model_type = ModelType.T5_CONDITIONAL_GENERATION
 if not enable_parallelism_tokenizer:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-save_directory = "./models/{}".format(vulnerability + "-" + model_name)
-data_file = "../data/{}.json".format(vulnerability)
+save_directory = "llm/models/{}".format(vulnerability + "-" + model_name)
+data_file = "data/{}.json".format(vulnerability)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 prompts, labels = read_prompts(data_file)

@@ -1,3 +1,6 @@
 /llm/lightning_logs/
 .idea
 /llm/models/
+/evaluator/CodeBLEU/__pycache__/
+/evaluator/CodeBLEU/parser/__pycache__/
+/evaluator/__pycache__/
