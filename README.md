@@ -6,7 +6,7 @@ To start the llm prompt fine tuning with the given data sql buggy data
 
 ```
 git clone https://github.com/AKafakA/llm4codeVulner.git
-cd cd llm4codeVulner/
+cd llm4codeVulner/
 conda env create -f environment/nvidia/environment.yml
 conda activate llm
 python3 llm/train.py
