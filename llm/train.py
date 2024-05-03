@@ -7,18 +7,15 @@ import os
 
 vulnerability = "plain_sql"
 lang = 'python'
-prompt_prefix = "Please help to Fix this Python: "
-if vulnerability.endswith("sql"):
-    prompt_prefix = "Please help to Fix this SQL code called in Python: "
 
-training_epochs = 10
+training_epochs = 20
 warmup_steps = 1000
 lr = 5e-5
 # test with small data for check the correctness
-data_usage_ratio = 1.0
+data_usage_ratio = 0.05
 accelerator = 'gpu'
 enable_parallelism_tokenizer = False
-enable_evaluation = False
+enable_evaluation = True
 save_output = False
 use_deepspeed = False
 use_lora = False
@@ -30,6 +27,10 @@ model_type = ModelType.T5_CONDITIONAL_GENERATION
 
 # model_name = "google/codegemma-2b"
 # model_type = ModelType.CAUSAL_LM
+
+prompt_prefix = "Please help to Fix this Python: "
+if vulnerability.endswith("sql"):
+    prompt_prefix = "Please help to Fix this SQL in Python: "
 
 if not enable_parallelism_tokenizer:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -84,8 +85,6 @@ if enable_evaluation:
     predictions = []
     baseline_predictions = []
     for test_example in test_dataset:
-        with (open(input_file_path, 'w') as input_file,
-              open(references_file_path, 'w') as references_file, open(prediction_file_path, 'w') as prediction_file):
 
             input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
             output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
@@ -94,9 +93,12 @@ if enable_evaluation:
             predictions.append(tokenizer.decode(output[0], skip_special_tokens=True))
             baseline_predictions.append(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
             if save_output:
-                references_file.write(test_example[label_column])
-                input_file.write(test_example[text_column])
-                prediction_file.write(tokenizer.decode(outputs[0], skip_special_tokens=True))
+                with (open(input_file_path, 'w+') as input_file,
+                      open(references_file_path, 'w+') as references_file,
+                      open(prediction_file_path, 'w+') as prediction_file):
+                    references_file.write(test_example[label_column])
+                    input_file.write(test_example[text_column])
+                    prediction_file.write(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
     print("##################" + "Train model output metrics" + "##################")
 
