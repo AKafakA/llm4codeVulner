@@ -71,7 +71,7 @@ if enable_evaluation:
     references = []
     predictions = []
     baseline_predictions = []
-    for test_example in test_dataloader:
+    for test_example in test_dataset:
         references.append(test_example[label_column])
         input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
         outputs = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
