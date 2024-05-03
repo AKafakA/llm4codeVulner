@@ -8,11 +8,7 @@ from evaluator.CodeBLEU import bleu, weighted_ngram_match, syntax_match, dataflo
 
 # -*- coding:utf-8 -*-
 
-
-def calculate_code_bleu(reference_file, prediction_file, lang, alpha=0.25, beta=0.25, gamma=0.25, theta=0.25):
-    # preprocess inputs
-    pre_references = [[x.strip() for x in open(reference_file, 'r', encoding='utf-8').readlines()]]
-    prediction = [x.strip() for x in open(prediction_file, 'r', encoding='utf-8').readlines()]
+def calculate_code_bleu_from_lists(pre_references, prediction, lang, alpha=0.25, beta=0.25, gamma=0.25, theta=0.25):
 
     for i in range(len(pre_references)):
         assert len(prediction) == len(pre_references[i])
@@ -54,3 +50,11 @@ def calculate_code_bleu(reference_file, prediction_file, lang, alpha=0.25, beta=
                       + theta * dataflow_match_score
     # print('Code BLEU score: ' + str(code_bleu_score))
     return code_bleu_score
+
+
+def calculate_code_bleu(reference_file, prediction_file, lang, alpha=0.25, beta=0.25, gamma=0.25, theta=0.25):
+    # preprocess inputs
+    pre_references = [[x.strip() for x in open(reference_file, 'r', encoding='utf-8').readlines()]]
+    prediction = [x.strip() for x in open(prediction_file, 'r', encoding='utf-8').readlines()]
+
+    return calculate_code_bleu_from_lists(pre_references, prediction, lang, alpha, beta, gamma, theta)
