@@ -54,8 +54,10 @@ model = CodeModel(training_dataloader=train_dataloader, testing_dataloader=test_
                   num_train_epochs=training_epochs, lr=lr, warmup_steps=warmup_steps, use_lora=use_lora)
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
+root_dir = "llm/" + "trainer/{}".format(vulnerability + "-" + model_name)
 trainer = get_pytorch_trainer(vulnerability=vulnerability, training_epochs=training_epochs, model_name=model_name,
-                              lr_monitor=lr_monitor, use_deepspeed=use_deepspeed, accelerator=accelerator)
+                              lr_monitor=lr_monitor, use_deepspeed=use_deepspeed,
+                              accelerator=accelerator, root_dir=root_dir)
 
 trainer.fit(model)
 model.model.save_pretrained(save_directory)

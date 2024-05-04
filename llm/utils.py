@@ -118,10 +118,11 @@ def get_model(model_name, model_type, save_path=None):
     return model
 
 
-def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, use_deepspeed=False, accelerator='gpu'):
+def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, root_dir, use_deepspeed=False,
+                        accelerator='gpu'):
     if use_deepspeed:
         trainer = Trainer(
-            default_root_dir="./" + "models/{}".format(vulnerability + "-" + model_name),
+            default_root_dir=root_dir,
             callbacks=[lr_monitor],
             max_epochs=training_epochs,
             accelerator=accelerator,
