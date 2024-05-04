@@ -80,12 +80,12 @@ if enable_evaluation:
     input_file_path = "data/test/{}/input.json".format(vulnerability)
     references_file_path = "data/test/{}/references.json".format(vulnerability)
     prediction_file_path = "data/test/{}/prediction.json".format(vulnerability)
+    baseline_prediction_file_path = "data/test/{}/baseline_prediction.json".format(vulnerability)
 
     references = []
     predictions = []
     baseline_predictions = []
     for test_example in test_dataset:
-
         input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
         output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
         baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
@@ -95,10 +95,12 @@ if enable_evaluation:
         if save_output:
             with (open(input_file_path, 'w+') as input_file,
                   open(references_file_path, 'w+') as references_file,
-                  open(prediction_file_path, 'w+') as prediction_file):
+                  open(prediction_file_path, 'w+') as prediction_file,
+                  open(baseline_prediction_file_path, 'w+') as baseline_prediction_file):
                 references_file.write(test_example[label_column])
                 input_file.write(test_example[text_column])
-                prediction_file.write(tokenizer.decode(outputs[0], skip_special_tokens=True))
+                prediction_file.write(predictions[-1])
+                baseline_prediction_file.write(baseline_predictions[-1])
 
     print("##################" + "Train model output metrics" + "##################")
 

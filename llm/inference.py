@@ -1,7 +1,5 @@
 from transformers import AutoTokenizer
-from utils import (read_prompts, convert_to_dataset, get_dataloader, max_new_token_length,
-                   text_column, label_column, ModelType, get_model)
-
+from utils import (max_new_token_length, ModelType, get_model)
 
 vulnerability = "plain_sql"
 model_name = "Salesforce/codet5-small"
@@ -14,32 +12,36 @@ if vulnerability.endswith("sql"):
     prompt_prefix = "Please help to Fix this SQL code called in Python: "
 
 
-save_directory = "./models/{}".format(vulnerability + "-" + model_name)
-# save_directory = None
-data_file = "../data/{}.json".format(vulnerability)
-data_usage_ratio = 1.0
-
-input_file_path = "../data/test/{}/input.json".format(vulnerability)
-references_file_path = "../data/test/{}/references.json".format(vulnerability)
-prediction_file_path = "../data/test/{}/prediction.json".format(vulnerability)
-
-train_ratio = 0.6
-val_ratio = 0.2
-prompts, labels = read_prompts(data_file)
-train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)
-test_dataloader = get_dataloader(dataset=test_dataset, shuffle=False, batch_size=1,
-                                 tokenizer=tokenizer, prompt_prefix=prompt_prefix)
-
+save_directory = "llm/models/{}".format(vulnerability + "-" + model_name)
 model = get_model(model_name, model_type, save_path=save_directory)
+baseline_model = get_model(model_name, model_type)
 
-for test_example in test_dataloader:
-    with (open(input_file_path, 'w') as input_file,
-          open(references_file_path, 'w') as references_file, open(prediction_file_path, 'w') as prediction_file):
-        input_file.write(test_example[text_column])
-        references_file.write(test_example[label_column])
-        input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
-        outputs = model.generate(input_ids, max_new_tokens=max_new_token_length)
-        prediction_file.write(tokenizer.decode(outputs[0], skip_special_tokens=True))
+batch_input = False
+prompt_path = "data/test/{}/prompts.txt".format(vulnerability + "-" + model_name)
+prediction_path = "data/test/{}/prediction.txt".format(vulnerability)
+baseline_prediction_path = "data/test/{}/baseline_prediction.txt".format(vulnerability)
 
+test_example = ""
+
+
+if batch_input:
+    with (open(prompt_path, "r+") as f,
+          open(prediction_path, "w+") as prediction_file,
+          open(baseline_prediction_path, "w+") as baseline_prediction_file):
+        prompts = f.read().splitlines()
+        for prompt in prompts:
+            input_ids = tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids
+            output = model.generate(input_ids, max_new_tokens=max_new_token_length)
+            prediction_file.write(tokenizer.decode(output[0], skip_special_tokens=True))
+
+            baseline_output = baseline_model.generate(input_ids, return_tensors='pt')
+            baseline_prediction_file.write(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
+
+else:
+    input_ids = tokenizer(prompt_prefix + test_example, return_tensors='pt').input_ids
+    output = model.generate(input_ids, max_new_tokens=max_new_token_length)
+    print("Train model output :", tokenizer.decode(output[0], skip_special_tokens=True))
+    output = baseline_model.generate(input_ids, max_new_tokens=max_new_token_length)
+    print("Baseline model output :", tokenizer.decode(output[0], skip_special_tokens=True))
 
 
