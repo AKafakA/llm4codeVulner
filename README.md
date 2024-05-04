@@ -11,7 +11,10 @@ conda env create -f environment/nvidia/environment.yml
 conda activate llm
 python3 llm/train.py
 ```
-GPU/TPU is not required for the testing examples
+
+This train scripts will read the github patchs and train on the given llm models from hugging face, save the model and print the evalution metrics (code bert score and code bleu score) on test data.
+
+And the inference.py allow user to load the trained model from training scripts and produce the repaired code 
 
 If want to test with model which require access, please apply it at hugging face and then login huggine face by
 
