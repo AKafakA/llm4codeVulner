@@ -154,3 +154,10 @@ def print_metrics(references, predictions, lang):
     print("Average Code Bert score f1 : ", code_bert_score_f1)
     print("Average Code Bert score f3 : ", code_bert_score_f3)
 
+
+def get_prompt_prefix(vulnerability, lang):
+    prompt_prefix = "Please help to Fix this {}: ".format(lang)
+    if vulnerability.endswith("sql"):
+        prompt_prefix = "Please help to Fix this SQL code called in {}: ".format(lang)
+    return prompt_prefix
+

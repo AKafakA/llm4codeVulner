@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer
 from utils import (read_prompts, convert_to_dataset, get_dataloader, max_new_token_length,
-                   text_column, label_column, ModelType, get_model, get_pytorch_trainer, print_metrics)
+                   text_column, label_column, ModelType, get_model, get_pytorch_trainer,
+                   print_metrics, get_prompt_prefix)
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
 import os
@@ -28,9 +29,7 @@ model_type = ModelType.T5_CONDITIONAL_GENERATION
 # model_name = "google/codegemma-2b"
 # model_type = ModelType.CAUSAL_LM
 
-prompt_prefix = "Please help to Fix this Python: "
-if vulnerability.endswith("sql"):
-    prompt_prefix = "Please help to Fix this SQL in Python: "
+prompt_prefix = get_prompt_prefix(vulnerability, lang)
 
 if not enable_parallelism_tokenizer:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"

@@ -1,5 +1,5 @@
 from transformers import AutoTokenizer
-from utils import (max_new_token_length, ModelType, get_model)
+from utils import (max_new_token_length, ModelType, get_model, get_prompt_prefix)
 
 vulnerability = "plain_sql"
 model_name = "Salesforce/codet5-small"
@@ -7,9 +7,7 @@ model_type = ModelType.T5_CONDITIONAL_GENERATION
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 lang = 'python'
-prompt_prefix = "Please help to Fix this Python: "
-if vulnerability.endswith("sql"):
-    prompt_prefix = "Please help to Fix this SQL code called in Python: "
+prompt_prefix = get_prompt_prefix(vulnerability, lang)
 
 
 save_directory = "llm/models/{}".format(vulnerability + "-" + model_name)
@@ -22,6 +20,7 @@ prediction_path = "data/test/{}/prediction.txt".format(vulnerability)
 baseline_prediction_path = "data/test/{}/baseline_prediction.txt".format(vulnerability)
 
 test_example = ""
+# test_example = "WHERE parent_id IN ({list_root_ids}"
 
 
 if batch_input:
