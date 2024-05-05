@@ -26,23 +26,33 @@ def read_prompts(filename):
     with open(filename) as file:
         data_str = file.read()  # Read the content of the file as a string
         data = json.loads(data_str)  # Parse the JSON string
-        prompts = []
-        labels = []
+    prompts = []
+    labels = []
 
-        for repo_url, commits_info in data.items():
-            for commit_hash, commit_info in commits_info.items():
-                # Check if the 'files' key exists in the commit_info
-                for file_info in commit_info["files"].values():
-                    for change in file_info["changes"]:
-                        prompt_lines = change["diff"].split("\n- ")[1:]
-                        label_lines = change["diff"].split("\n+ ")[1:]
+    for repo_url, commits_info in data.items():
+        for commit_hash, commit_info in commits_info.items():
+            # Check if the 'files' key exists in the commit_info
+            for file_info in commit_info["files"].values():
+                for change in file_info["changes"]:
+                    # Split the file content based on prompts and labels
+                    prompt_start = change["diff"].find("\n-")  # Find the start of the first prompt
+                    while prompt_start != -1:
+                        prompt_end = change["diff"].find("\n+", prompt_start)  # Find the end of the current prompt
+                        label_end = change["diff"].find("\n-", prompt_end)  # Find the start of the next prompt
 
-                        for prompt_line, label_line in zip(prompt_lines, label_lines):
-                            prompt = prompt_line.split("\n")[0].strip()
-                            label = label_line.split("\n")[0].strip()
-                            prompts.append(prompt)
-                            labels.append(label)
-        return prompts, labels
+                        # If no next prompt or if "\n-" occurs before "\n \n", set label_end to prompt_end
+                        if label_end == -1 or (change["diff"].find("\n \n", prompt_end) < change["diff"].find("\n-", prompt_end)):
+                            label_end = change["diff"].find("\n \n", prompt_end)
+
+                        prompt = change["diff"][prompt_start+len("\n-"):prompt_end].strip().replace("\n-", "\n")  # Extract and clean the prompt
+                        label = change["diff"][prompt_end+len("\n+"):label_end].strip().replace("\n+", "\n")  # Extract and clean the label
+
+                        prompts.append(prompt)
+                        labels.append(label)
+
+                        prompt_start = change["diff"].find("\n-", label_end)  # Find the start of the next prompt
+
+    return prompts, labels
 
 
 def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2, data_usage_ratio=1.0):
