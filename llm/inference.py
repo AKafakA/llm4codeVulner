@@ -97,6 +97,8 @@ elif test_type == TestType.STATIC_ANALYSIS:
                 prompts = file_record["prompts"]
                 file_name = file_record["file_name"]
                 input_file_name = saved_buggy_file + get_filename_from_patch(repo_name, file_name, commit_hash)
+                target_file_name = baseline_fix_path + get_filename_from_patch(repo_name, file_name, commit_hash)
+                baseline_file_name = baseline_fix_path + get_filename_from_patch(repo_name, file_name, commit_hash)
                 if not os.path.exists(input_file_name):
                     print("File {} not found".format(input_file_name))
                     continue
@@ -115,8 +117,6 @@ elif test_type == TestType.STATIC_ANALYSIS:
                         baseline_input_ids = baseline_tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids
                         baseline_output = baseline_model.generate(input_ids, max_new_tokens=max_new_token_length)
                         baseline_output_code = baseline_tokenizer.decode(baseline_output[0], skip_special_tokens=True)
-                        target_file_name = baseline_fix_path + get_filename_from_patch(repo_name, file_name, commit_hash)
-                        baseline_file_name = baseline_fix_path + get_filename_from_patch(repo_name, file_name, commit_hash)
 
                         baseline_code = baseline_code.replace(prompt, baseline_output_code)
                         target_codes = target_codes.replace(prompt, target_output_code)
