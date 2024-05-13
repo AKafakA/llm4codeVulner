@@ -118,7 +118,7 @@ elif test_type == TestType.STATIC_ANALYSIS:
                         baseline_output = baseline_model.generate(input_ids, max_new_tokens=max_new_token_length)
                         baseline_output_code = baseline_tokenizer.decode(baseline_output[0], skip_special_tokens=True)
 
-                        baseline_code = baseline_code.replace(prompt, baseline_output_code)
+                        baseline_codes = baseline_codes.replace(prompt, baseline_output_code)
                         target_codes = target_codes.replace(prompt, target_output_code)
 
                     baseline.write(baseline_codes)
