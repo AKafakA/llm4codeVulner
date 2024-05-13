@@ -23,7 +23,7 @@ class CodeModel(pl.LightningModule):
         self.model = get_model(model_name, model_type)
         if use_lora:
             task_type = model_type
-            if model_type == ModelType.T5_CONDITIONAL_GENERATION:
+            if model_type != ModelType.CAUSAL_LM:
                 task_type = "SEQ_2_SEQ_LM"
             peft_config = LoraConfig(
               task_type=task_type,

@@ -1,7 +1,8 @@
 from transformers import AutoTokenizer
-from utils import (read_prompts, convert_to_dataset, get_dataloader, max_new_token_length,
+from utils import (convert_to_dataset, get_dataloader, max_new_token_length,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer,
                    print_metrics, get_prompt_prefix)
+from data.process.utils import read_prompts
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
 import os
@@ -13,7 +14,7 @@ training_epochs = 20
 warmup_steps = 1000
 lr = 5e-5
 # test with small data for check the correctness
-data_usage_ratio = 0.05
+data_usage_ratio = 1.0
 accelerator = 'gpu'
 enable_parallelism_tokenizer = False
 enable_evaluation = True

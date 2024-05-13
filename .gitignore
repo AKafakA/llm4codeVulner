@@ -5,3 +5,5 @@
 /evaluator/CodeBLEU/parser/__pycache__/
 /evaluator/__pycache__/
 /llm/__pycache__/
+/data/buggy_files/
+/data/test/
