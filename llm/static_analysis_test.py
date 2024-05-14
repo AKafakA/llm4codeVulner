@@ -48,7 +48,7 @@ github_client = Github(auth=auth)
 records = read_patches(prompt_data_file)
 total_patches = len(records)
 start_patch_index = int(total_patches * train_and_valid_ratio)
-test_records = records[start_patch_index:start_patch_index + num_tests]
+test_records = records[start_patch_index:min(start_patch_index + num_tests, total_patches)]
 num_processed_files = 0
 for record in test_records:
     repo_name = record["repo"]
