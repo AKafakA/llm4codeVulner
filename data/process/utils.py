@@ -1,4 +1,10 @@
+import ast
+import base64
 import json
+import os
+
+from github import Github, UnknownObjectException
+from github import Auth
 
 
 def read_patches(filename):
@@ -33,10 +39,10 @@ def read_patches(filename):
                         prompt_end = change["diff"].find("\n+", prompt_start)  # Find the end of the current prompt
                         label_end = change["diff"].find("\n-", prompt_end)  # Find the start of the next prompt
 
-                        # If no next prompt or if "\n-" occurs before "\n \n", set label_end to prompt_end
+                        # If no next prompt or if "\n-" occurs before "\n ", set label_end to prompt_end
                         if label_end == -1 or (
-                                change["diff"].find("\n \n", prompt_end) < change["diff"].find("\n-", prompt_end)):
-                            label_end = change["diff"].find("\n \n", prompt_end)
+                                change["diff"].find("\n ", prompt_end) < label_end):
+                            label_end = change["diff"].find("\n ", prompt_end)
 
                         prompt = change["diff"][prompt_start + len("\n-"):prompt_end].strip().replace("\n-",
                                                                                                       "\n")  # Extract and clean the prompt
@@ -69,3 +75,50 @@ def process_source_code(code):
 def get_filename_from_patch(repo_name, file_path, ref, truncated_in_hash=5):
     file_name = file_path.split("/")[-1]
     return repo_name.replace("/", "_") + "-" + ref[:truncated_in_hash] + "-" + file_name
+
+
+def download_vulnerable_files(patch_records, output_path, github_client):
+    available_commits = 0
+    for record in patch_records:
+        if download_vulnerable_file(record, github_client, output_path):
+            available_commits += 1
+    return available_commits
+
+
+def download_vulnerable_file(patch_record, github_client, output_path, write_commits=True):
+    code_path = output_path + "/code/"
+    if not os.path.exists(code_path):
+        os.makedirs(os.path.join(code_path))
+    valid = False
+    commits_file = None
+    if write_commits:
+        commits_file_path = os.path.join(output_path, "commits.json")
+        commits_file = open(commits_file_path, "a+")
+    try:
+        repo_name = patch_record["repo"]
+        repo = github_client.get_repo(repo_name)
+        for commit_record in patch_record["commits"]:
+            commit_sha = commit_record["commit_hash"]
+            commits = repo.get_commits(commit_sha)
+            for file_record in commit_record["files"]:
+                file_path = file_record["file_name"]
+                git_file = repo.get_contents(path=file_path, ref=commits[1].sha)
+                file_data = base64.b64decode(git_file.content)
+                processed_sourced = process_source_code(file_data.decode("utf-8"))
+                try:
+                    ast.parse(processed_sourced)
+                    if len(processed_sourced) > 0:
+                        output_file_name = code_path + get_filename_from_patch(repo_name, file_path, commit_sha)
+                        file = open(output_file_name, "w+")
+                        file.write(processed_sourced)
+                        file.close()
+                        if write_commits:
+                            commits_file.write(commit_sha + "\n")
+                            valid = True
+                except SyntaxError:
+                    valid = False
+    except UnknownObjectException:
+        valid = False
+        print("Could not find by repo {}".format(patch_record["repo"]))
+    return valid
+
