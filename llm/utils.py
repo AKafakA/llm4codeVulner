@@ -2,6 +2,7 @@ from enum import Enum
 
 from datasets import Dataset
 from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import CSVLogger
 from torch.utils.data import DataLoader
 from transformers import T5ForConditionalGeneration, AutoModelForCausalLM, AutoModel
 from pytorch_lightning.strategies import deepspeed
@@ -97,7 +98,8 @@ def get_model(model_name, model_type, save_path=None, device='cpu'):
 
 
 def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, root_dir, use_deepspeed=False,
-                        accelerator='gpu'):
+                        accelerator='gpu', log_every_n_steps=10, csv_logger=True):
+    logger = CSVLogger(root_dir + "/logs", name=model_name)
     if use_deepspeed:
         trainer = Trainer(
             default_root_dir=root_dir,
@@ -110,6 +112,8 @@ def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, 
                 offload_parameters=True,
             ),
             precision=16,
+            log_every_n_steps=log_every_n_steps,
+            logger=logger
         )
         trainer.strategy.config["zero_force_ds_cpu_optimizer"] = False
         return trainer
@@ -119,6 +123,8 @@ def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, 
             callbacks=[lr_monitor],
             max_epochs=training_epochs,
             accelerator=accelerator,
+            log_every_n_steps=log_every_n_steps,
+            logger=logger
         )
 
 

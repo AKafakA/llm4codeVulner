@@ -1,3 +1,4 @@
+import torch
 from transformers import AutoTokenizer
 from utils import (convert_to_dataset, get_dataloader, max_new_token_length,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer,
@@ -25,7 +26,7 @@ use_lora = False
 model_name = "Salesforce/codet5-small"
 model_type = ModelType.T5_CONDITIONAL_GENERATION
 # Can test on cpu since the model is small
-# accelerator = 'gpu'
+device = "cuda:0" if torch.cuda.is_available() and accelerator == 'gpu' else "cpu"
 
 # model_name = "google/codegemma-2b"
 # model_type = ModelType.CAUSAL_LM
@@ -54,7 +55,7 @@ model = CodeModel(training_dataloader=train_dataloader, testing_dataloader=test_
                   num_train_epochs=training_epochs, lr=lr, warmup_steps=warmup_steps, use_lora=use_lora)
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
-root_dir = "llm/" + "trainer/{}".format(vulnerability + "-" + model_name)
+root_dir = "llm/models/{}".format(vulnerability + "-" + model_name)
 trainer = get_pytorch_trainer(vulnerability=vulnerability, training_epochs=training_epochs, model_name=model_name,
                               lr_monitor=lr_monitor, use_deepspeed=use_deepspeed,
                               accelerator=accelerator, root_dir=root_dir)
@@ -68,12 +69,13 @@ print("Test example : ")
 print("Code to be fix:", sanity_checking_example[text_column])
 print("Fixed code: ", sanity_checking_example[label_column])
 
-trained_model = get_model(model_name, model_type, save_path=save_directory)
-input_ids = tokenizer(prompt_prefix + sanity_checking_example[text_column], return_tensors='pt').input_ids
+trained_model = get_model(model_name, model_type, save_path=save_directory, device=device)
+input_ids = tokenizer(prompt_prefix + sanity_checking_example[text_column], return_tensors='pt').input_ids.to(device)
+
 outputs = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
 print("Train model output :", tokenizer.decode(outputs[0], skip_special_tokens=True))
 
-untrained_model = get_model(model_name, model_type=model_type)
+untrained_model = get_model(model_name, model_type=model_type, device=device)
 outputs = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
 print("Raw model output", tokenizer.decode(outputs[0], skip_special_tokens=True))
 
@@ -88,7 +90,7 @@ if enable_evaluation:
     predictions = []
     baseline_predictions = []
     for test_example in test_dataset:
-        input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids
+        input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids.to(device)
         output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
         baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
         references.append(test_example[label_column])
