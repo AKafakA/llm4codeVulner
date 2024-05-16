@@ -3,8 +3,7 @@ import base64
 import json
 import os
 
-from github import Github, UnknownObjectException
-from github import Auth
+from github import UnknownObjectException
 
 
 def read_patches(filename):
