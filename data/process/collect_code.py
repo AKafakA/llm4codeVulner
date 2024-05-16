@@ -1,19 +1,15 @@
 import shutil
 import subprocess
-import sys
 
-from github import Auth, Github
-
-from data.process.utils import read_patches, download_vulnerable_files
+from data.process.utils import read_patches, download_vulnerable_files, get_github_client
 
 
 vulnerability = "plain_sql"
 data_file = "data/{}.json".format(vulnerability)
 output_path = "data/buggy_files/" + vulnerability
 
-github_token = sys.argv[1]
-auth = Auth.Token(github_token)
-g = Github(auth=auth)
+token = ""
+g = get_github_client(token)
 
 records = read_patches(data_file)
 total_patches = len(records)

@@ -3,7 +3,7 @@ import base64
 import json
 import os
 
-from github import UnknownObjectException
+from github import UnknownObjectException, Auth, Github
 
 
 def read_patches(filename):
@@ -124,3 +124,8 @@ def download_vulnerable_file(patch_record, github_client, output_path, commit_fi
         valid = False
         print("Could not find by repo {}".format(patch_record["repo"]))
     return valid
+
+
+def get_github_client(token):
+    auth = Auth.Token(token)
+    return Github(auth=auth)

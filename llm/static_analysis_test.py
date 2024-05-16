@@ -3,11 +3,10 @@ import shutil
 import subprocess
 
 import torch
-from github import Auth, Github
 from transformers import AutoTokenizer
 from utils import (ModelType, get_model, get_prompt_prefix,
                    generate_and_write_fixed_code)
-from data.process.utils import read_patches, get_filename_from_patch, download_vulnerable_file
+from data.process.utils import read_patches, get_filename_from_patch, download_vulnerable_file, get_github_client
 
 
 #  Tunable Parameter
@@ -19,6 +18,9 @@ target_model_name = "Salesforce/codet5-small"
 model_type = ModelType.T5_CONDITIONAL_GENERATION
 # target_model_name = "google/codegemma-2b"
 # model_type = ModelType.CAUSAL_LM
+
+token = "GITHUB_PERSIONAL_TOKEN"
+github_client = get_github_client(token)
 # End of Parameters
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -52,8 +54,6 @@ if os.path.exists(target_fix_path):
     shutil.rmtree(target_fix_path)
     os.makedirs(target_fix_path)
 
-auth = Auth.Token('GITHUB_TOKEN')
-github_client = Github(auth=auth)
 
 records = read_patches(prompt_data_file)
 total_patches = len(records)
@@ -116,18 +116,19 @@ if not os.path.exists(no_error_files_path):
 
 num_runnable_files = 0
 runnable_commits_file = target_fix_path + "runnable_full_file_names.txt"
-runnable_commits = set()
+runnable_files = set()
 with open(runnable_commits_file, "a+") as f:
     for file in os.listdir(target_fix_path):
-        if file.endswith('.py') or file.endswith('.tpl'):
-            shutil.move(target_fix_path + file, no_error_files_path + file)
-            ref = file[:5]
-            runnable_commits.add(file)
-            num_runnable_files += 1
-        else:
-            os.remove(target_fix_path + file)
-    for commit_hash in runnable_commits:
-        f.write(commit_hash + "\n")
+        if not os.path.isdir(os.path.join(target_fix_path, file)):
+            if file.endswith('.py') or file.endswith('.tpl'):
+                shutil.move(target_fix_path + file, no_error_files_path + file)
+                ref = file[:5]
+                runnable_files.add(file)
+                num_runnable_files += 1
+            else:
+                os.remove(target_fix_path + file)
+    for runnable_file in runnable_files:
+        f.write(runnable_file + "\n")
 
 
 original_no_error_files_path = saved_buggy_files_code_path + "fix_with_no_error/"
