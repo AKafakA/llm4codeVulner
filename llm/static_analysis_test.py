@@ -10,7 +10,7 @@ from data.process.utils import read_patches, get_filename_from_patch, download_v
 
 
 #  Tunable Parameter
-vulnerability = "plain_sql"
+vulnerability = "sql_injection"
 lang = 'python'
 num_tests = 50
 train_and_valid_ratio = 0.8

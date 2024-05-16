@@ -8,7 +8,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
 import os
 
-vulnerability = "plain_sql"
+vulnerability = "sql_injection"
 lang = 'python'
 
 training_epochs = 20

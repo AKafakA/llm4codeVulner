@@ -5,7 +5,7 @@ import torch
 from transformers import AutoTokenizer
 from utils import max_new_token_length, ModelType, get_model, get_prompt_prefix
 
-vulnerability = "plain_sql"
+vulnerability = "sql_injection"
 lang = 'python'
 prompt_prefix = get_prompt_prefix(vulnerability, lang)
 

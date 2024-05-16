@@ -4,7 +4,7 @@ import subprocess
 from data.process.utils import read_patches, download_vulnerable_files, get_github_client
 
 
-vulnerability = "plain_sql"
+vulnerability = "sql_injection"
 data_file = "data/{}.json".format(vulnerability)
 output_path = "data/buggy_files/" + vulnerability
 
