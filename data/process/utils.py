@@ -72,9 +72,9 @@ def process_source_code(code):
     return code.replace("{{/*", "'''").replace("*/}}", "'''")
 
 
-def get_filename_from_patch(repo_name, file_path, ref, truncated_in_hash=5):
+def get_filename_from_patch(repo_name, file_path, ref, ref_truncated_number=5):
     file_name = file_path.split("/")[-1]
-    return repo_name.replace("/", "_") + "-" + ref[:truncated_in_hash] + "-" + file_name
+    return ref[:ref_truncated_number] + "-" + repo_name.replace("/", "_") + file_name
 
 
 def download_vulnerable_files(patch_records, output_path, github_client):
@@ -85,20 +85,23 @@ def download_vulnerable_files(patch_records, output_path, github_client):
     return available_commits
 
 
-def download_vulnerable_file(patch_record, github_client, output_path, write_commits=True):
+def download_vulnerable_file(patch_record, github_client, output_path, commit_filter=None, write_commits=True,
+                             commit_truncated_number=5):
     code_path = output_path + "/code/"
     if not os.path.exists(code_path):
         os.makedirs(os.path.join(code_path))
     valid = False
     commits_file = None
     if write_commits:
-        commits_file_path = os.path.join(output_path, "commits.json")
+        commits_file_path = os.path.join(output_path, "commits.txt")
         commits_file = open(commits_file_path, "a+")
     try:
         repo_name = patch_record["repo"]
         repo = github_client.get_repo(repo_name)
         for commit_record in patch_record["commits"]:
             commit_sha = commit_record["commit_hash"]
+            if commit_filter and (commit_sha not in commit_filter):
+                continue
             commits = repo.get_commits(commit_sha)
             for file_record in commit_record["files"]:
                 file_path = file_record["file_name"]
@@ -108,7 +111,8 @@ def download_vulnerable_file(patch_record, github_client, output_path, write_com
                 try:
                     ast.parse(processed_sourced)
                     if len(processed_sourced) > 0:
-                        output_file_name = code_path + get_filename_from_patch(repo_name, file_path, commit_sha)
+                        output_file_name = code_path + get_filename_from_patch(repo_name, file_path, commit_sha,
+                                                                               commit_truncated_number)
                         file = open(output_file_name, "w+")
                         file.write(processed_sourced)
                         file.close()
@@ -121,4 +125,3 @@ def download_vulnerable_file(patch_record, github_client, output_path, write_com
         valid = False
         print("Could not find by repo {}".format(patch_record["repo"]))
     return valid
-

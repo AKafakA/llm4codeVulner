@@ -1,13 +1,12 @@
 import os
 import shutil
 import subprocess
-import sys
-from enum import Enum
 
+import torch
 from github import Auth, Github
 from transformers import AutoTokenizer
-from utils import (max_new_token_length, ModelType, get_model, get_prompt_prefix,
-                   generate_and_write_fixed_code, apply_label, generate_and_write_fixed_code_without_prompts)
+from utils import (ModelType, get_model, get_prompt_prefix,
+                   generate_and_write_fixed_code)
 from data.process.utils import read_patches, get_filename_from_patch, download_vulnerable_file
 
 
@@ -18,12 +17,15 @@ num_tests = 50
 train_and_valid_ratio = 0.8
 target_model_name = "Salesforce/codet5-small"
 model_type = ModelType.T5_CONDITIONAL_GENERATION
+# target_model_name = "google/codegemma-2b"
+# model_type = ModelType.CAUSAL_LM
 # End of Parameters
 
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 prompt_prefix = get_prompt_prefix(vulnerability, lang)
 target_tokenizer = AutoTokenizer.from_pretrained(target_model_name)
-# save_directory = None
-save_directory = "llm/models/{}".format(vulnerability + "-" + target_model_name)
+save_directory = None
+# save_directory = "llm/models/{}".format(vulnerability + "-" + target_model_name)
 target_model = get_model(target_model_name, model_type, save_path=save_directory)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 prompt_data_file = "data/{}.json".format(vulnerability)
@@ -34,6 +36,15 @@ if os.path.exists(saved_buggy_files_path):
     shutil.rmtree(saved_buggy_files_path)
     os.makedirs(saved_buggy_files_path)
 
+# commits_file = 'data/fix_with_runnable_commits_record.txt'
+commits_file = ''
+
+selected_files = []
+if commits_file:
+    with open(commits_file, 'r') as f:
+        for line in f:
+            selected_files.append(line.strip())
+
 fixed_directory = "data/test/static_check/" + vulnerability + '/'
 target_fix_path = fixed_directory + "target_fix/"
 
@@ -41,8 +52,7 @@ if os.path.exists(target_fix_path):
     shutil.rmtree(target_fix_path)
     os.makedirs(target_fix_path)
 
-github_token = sys.argv[1]
-auth = Auth.Token(github_token)
+auth = Auth.Token('GITHUB_TOKEN')
 github_client = Github(auth=auth)
 
 records = read_patches(prompt_data_file)
@@ -52,7 +62,8 @@ test_records = records[start_patch_index:min(start_patch_index + num_tests, tota
 num_processed_files = 0
 for record in test_records:
     repo_name = record["repo"]
-    file_downloaded = download_vulnerable_file(record, github_client, saved_buggy_files_path)
+    file_downloaded = download_vulnerable_file(record, github_client, saved_buggy_files_path,
+                                               commit_truncated_number=5)
     if not file_downloaded:
         continue
     for commit_record in record["commits"]:
@@ -61,9 +72,11 @@ for record in test_records:
             prompts = file_record["prompts"]
             labels = file_record["labels"]
             file_name = file_record["file_name"]
-            input_file_name = saved_buggy_files_code_path + get_filename_from_patch(repo_name, file_name,
-                                                                                    commit_hash)
-            target_file_name = target_fix_path + get_filename_from_patch(repo_name, file_name, commit_hash)
+            full_filename = get_filename_from_patch(repo_name, file_name, commit_hash, 5)
+            input_file_name = saved_buggy_files_code_path + full_filename
+            if len(selected_files) > 0 and full_filename not in selected_files:
+                continue
+            target_file_name = target_fix_path + full_filename
             if not os.path.exists(input_file_name):
                 print("File {} not found".format(input_file_name))
                 continue
@@ -102,10 +115,20 @@ if not os.path.exists(no_error_files_path):
     os.mkdir(no_error_files_path)
 
 num_runnable_files = 0
-for file in os.listdir(target_fix_path):
-    if file.endswith(".py"):
-        shutil.move(target_fix_path + file, no_error_files_path + file)
-        num_runnable_files += 1
+runnable_commits_file = target_fix_path + "runnable_full_file_names.txt"
+runnable_commits = set()
+with open(runnable_commits_file, "a+") as f:
+    for file in os.listdir(target_fix_path):
+        if file.endswith('.py') or file.endswith('.tpl'):
+            shutil.move(target_fix_path + file, no_error_files_path + file)
+            ref = file[:5]
+            runnable_commits.add(file)
+            num_runnable_files += 1
+        else:
+            os.remove(target_fix_path + file)
+    for commit_hash in runnable_commits:
+        f.write(commit_hash + "\n")
+
 
 original_no_error_files_path = saved_buggy_files_code_path + "fix_with_no_error/"
 if not os.path.exists(original_no_error_files_path):

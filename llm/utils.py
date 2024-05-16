@@ -11,7 +11,7 @@ from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from
 
 max_input_length = 256
 max_target_length = 256
-max_new_token_length = 48
+max_new_token_length = 256
 
 text_column = 'raw_code'
 label_column = 'fixed_code'
@@ -84,7 +84,7 @@ def get_dataloader(dataset, shuffle, batch_size, tokenizer, prompt_prefix,
     return DataLoader(processed_datasets, shuffle=shuffle, batch_size=batch_size, num_workers=num_workers)
 
 
-def get_model(model_name, model_type, save_path=None):
+def get_model(model_name, model_type, save_path=None, device='cpu'):
     model_context = model_name
     if save_path:
         model_context = save_path
@@ -94,7 +94,7 @@ def get_model(model_name, model_type, save_path=None):
         model = AutoModelForCausalLM.from_pretrained(model_context)
     else:
         model = AutoModel.from_pretrained(model_context)
-    return model
+    return model.to(device)
 
 
 def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, root_dir, use_deepspeed=False,
@@ -141,11 +141,11 @@ def get_prompt_prefix(vulnerability, lang):
     return prompt_prefix
 
 
-def generate_and_write_fixed_code(model, source_code, tokenizer, prompt_prefix, prompts):
+def generate_and_write_fixed_code(model, source_code, tokenizer, prompt_prefix, prompts, device='cpu'):
     rep = {}
     fixed_code = source_code
     for prompt in prompts:
-        input_ids = tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids
+        input_ids = tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids.to(device)
         output = model.generate(input_ids, max_new_tokens=max_new_token_length)
         target_output_code = tokenizer.decode(output[0], skip_special_tokens=True)
         rep[prompt] = target_output_code

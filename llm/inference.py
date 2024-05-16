@@ -1,6 +1,7 @@
 import os
 from enum import Enum
 
+import torch
 from transformers import AutoTokenizer
 from utils import max_new_token_length, ModelType, get_model, get_prompt_prefix
 
@@ -10,9 +11,11 @@ prompt_prefix = get_prompt_prefix(vulnerability, lang)
 
 target_model_name = "Salesforce/codet5-small"
 model_type = ModelType.T5_CONDITIONAL_GENERATION
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
 target_tokenizer = AutoTokenizer.from_pretrained(target_model_name)
 save_directory = "llm/models/{}".format(vulnerability + "-" + target_model_name)
-target_model = get_model(target_model_name, model_type, save_path=save_directory)
+target_model = get_model(target_model_name, model_type, save_path=save_directory, device=device)
 
 baseline_model_name = "google/codegemma-2b"
 if not baseline_model_name == target_model_name:
@@ -48,7 +51,7 @@ if test_type == TestType.BATCH:
           open(baseline_prediction_path, "w+") as baseline_prediction_file):
         prompts = f.read().splitlines()
         for prompt in prompts:
-            target_input_ids = target_tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids
+            target_input_ids = target_tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids.to(device)
             output = target_model.generate(target_input_ids, max_new_tokens=max_new_token_length)
             prediction_file.write(target_tokenizer.decode(output[0], skip_special_tokens=True))
 
@@ -58,7 +61,7 @@ if test_type == TestType.BATCH:
 
 elif test_type == TestType.SANITY:
     for test_example in test_examples:
-        input_ids = target_tokenizer(prompt_prefix + test_example, return_tensors='pt').input_ids
+        input_ids = target_tokenizer(prompt_prefix + test_example, return_tensors='pt').input_ids.to(device)
         output = target_model.generate(input_ids, max_new_tokens=max_new_token_length)
         print("Target model output :", target_tokenizer.decode(output[0], skip_special_tokens=True))
         baseline_input_ids = baseline_tokenizer(prompt_prefix + test_example, return_tensors='pt').input_ids
