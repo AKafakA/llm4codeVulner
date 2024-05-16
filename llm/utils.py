@@ -98,8 +98,8 @@ def get_model(model_name, model_type, save_path=None, device='cpu'):
 
 
 def get_pytorch_trainer(vulnerability, model_name, lr_monitor, training_epochs, root_dir, use_deepspeed=False,
-                        accelerator='gpu', log_every_n_steps=10, csv_logger=True):
-    logger = CSVLogger(root_dir + "/logs", name=model_name)
+                        accelerator='gpu', log_every_n_steps=10):
+    logger = CSVLogger(root_dir + "/logs", name='csv_logs')
     if use_deepspeed:
         trainer = Trainer(
             default_root_dir=root_dir,
@@ -157,23 +157,6 @@ def generate_and_write_fixed_code(model, source_code, tokenizer, prompt_prefix, 
         output = model.generate(input_ids, max_new_tokens=max_new_token_length)
         target_output_code = tokenizer.decode(output[0], skip_special_tokens=True)
         rep[prompt] = target_output_code
-    for prompt, fix in rep.items():
-        fixed_code = fixed_code.replace(prompt, fix)
-    return fixed_code
-
-
-def generate_and_write_fixed_code_without_prompts(model, source_code, tokenizer, prompt_prefix):
-    input_ids = tokenizer(prompt_prefix + source_code, return_tensors='pt').input_ids
-    output = model.generate(input_ids)
-    target_output_code = tokenizer.decode(output[0], skip_special_tokens=True)
-    return target_output_code
-
-
-def apply_label(source_code, prompts, labels):
-    rep = {}
-    fixed_code = source_code
-    for prompt, label in zip(prompts, labels):
-        rep[prompt] = label
     for prompt, fix in rep.items():
         fixed_code = fixed_code.replace(prompt, fix)
     return fixed_code
