@@ -12,7 +12,7 @@ vulnerability = "plain_sql"
 lang = 'python'
 
 training_epochs = 20
-warmup_steps = 1000
+warmup_steps = 10
 lr = 5e-5
 # test with small data for check the correctness
 data_usage_ratio = 1.0
