@@ -11,10 +11,16 @@ We recommand to use conda to set up the environments.
 
 The training code need to runned with nvidia gpus but the inferences should be able to run with locally by downloading provided the pre-training models
 
+All the data can be accessed from https://www.dropbox.com/scl/fo/ybl9m2me6k3vcm5d6hwia/AJuAq3R1T9yfVD1HQfRgKh0?rlkey=dww32pwcdykxdjg5vwvfw823g&st=x3jrgd0o&dl=0. 
+
+This included 
+
+User need to download and move all the data from the data repos to directories with the same name and location under this repo 
+
 ```setup
-git clone https://github.com/AKafakA/llm4codeVulner.git
-export PYTHONPATH=$PYTHONPATH:~/llm4codeVulner
-cd llm4codeVulner/
+git clone GITHUB_REPO_LINK
+export PYTHONPATH=$PYTHONPATH:~/GITHUB_DIR_PATH
+cd GITHUB_DIR/
 conda env create -f environment/environment.yml
 conda activate llm
 ```
@@ -28,10 +34,10 @@ To train the LLM model(s) in the paper, run this command:
 
 ```train
 huggingface-cli login
-python train.py --vulnerability [vulnerability want to trained with] --lang [programming language want to test, default is python] --epoches [training epoch] --model-name [the fine-tuned model name] --model-type [either model is T5 or casualLM]
+python llm/train.py --vulnerability [vulnerability want to trained with] --lang [programming language want to test, default is python] --epoches [training epoch] --model-name [the fine-tuned model name] --model-type [either model is T5 or casualLM]
 ```
 However, besides the basic provided parameters in the command, there exist multiple parameters has been hard coded and tuned direclty in the code. 
-For example, the lora parameters/training and validation data ratio etc. More details can be found at https://github.com/AKafakA/llm4codeVulner/blob/main/llm/train.py#L18
+For example, the lora parameters/training and validation data ratio etc. More details can be found at llm/train.py#L18
 
 
 ## Evaluation
@@ -40,25 +46,32 @@ We also provided a evaluation scripts which consumed the repair prediction and r
 
 All the code about caculate the codebleu score is cloned from https://github.com/microsoft/CodeXGLUE/blob/main/Code-Code/code-to-code-trans/CodeBLEU.MD, we do appearciate this. 
 
-```eval
-python evaluation.py --references_file_path  --prediction_file_path
-```
-
 To get the static analysis results, we provided a end-to-end scripts which will read the github patches in testing dataset, download python scripts by the github url in the patch, run the llm inferences with code diffs, combine the generated repairs and run the bandit tools to count the vulnerabilities.
 The personal github token is required to download the raw files. 
 
 ```static analysis
-python static_analysis_test --vulnerability --lang --model-name  --github-token
+python llm/static_analysis_test.py -v sql_injection -l python -t t5  -m Salesforce/codet5-small --github-token PERSIONAL_GITHUB_LINK
 ```
-Also, we provided a simple scripts just doing the inferences by given prompts and model pathes for debugging purposes.
+Also, we provided a simple scripts (llm/inferences.py) just doing the inferences by given prompts and model pathes for debugging purposes. 
+
+
+We also provide the evaluation scripts to get the table-1 results with the provided model example in data files (need to move the models under llm files), just run the evaluation scripts 
+
+```static analysis
+python llm/evaluation.py -v sql_injection -l python -t t5 -m Salesforce/codet5-small
+```
 
 To run the LSTM only to detect the vulnerability showed as Fig 2, pleasue run 
+
 ```LSTM 
 python demonstrate_labeled --vulnerability
 ```
 
 ## Pre-trained Models
-We plan to upload all pre-trained T5 models to hugging-face later, but currently we are still exploring if able to tune a better model with other configurations
+
+Lstm models and one pre-trained models has been included for testing purposes
+
+We plan to upload all pre-trained LLM models to hugging-face later
 
 ## Results
 
