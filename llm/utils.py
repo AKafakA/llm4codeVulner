@@ -11,15 +11,15 @@ from evaluator.metrics_getter import get_code_bleu_from_list, get_code_bert_from
 
 max_input_length = 256
 max_target_length = 256
-max_new_token_length = 256
+max_new_token_length = 48
 
 text_column = 'raw_code'
 label_column = 'fixed_code'
 
 
 class ModelType(Enum):
-    T5_CONDITIONAL_GENERATION = "t5_conditional_generation"
-    CAUSAL_LM = "CAUSAL_LM"
+    T5_CONDITIONAL_GENERATION = "t5"
+    CAUSAL_LM = "casual"
     AUTO = "auto"
 
 
