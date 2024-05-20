@@ -28,7 +28,7 @@ else:
   threshold = threshold1
 
 mincount = 10
-iterationen = 100
+iterationen = 30
 s = 200
 w2v = "word2vec_"+"withString"+str(mincount) + "-" + str(iterationen) +"-" + str(s)
 w2vmodel = "w2v/" + w2v + ".model"
@@ -74,7 +74,9 @@ print("finished loading")
 identifying = myutils.getIdentifiers(mode,nr)
 info = myutils.getFromDataset(identifying,data)
 sourcefull = info[0]
+print("source:  ", sourcefull)
 allbadparts = info[1]
+print("allbadparts: ", allbadparts)
 positions = myutils.findpositions(allbadparts,sourcefull)
 commentareas = myutils.findComments(sourcefull)
 myutils.getblocksVisual(mode,sourcefull, positions, commentareas, fulllength, step, nr, w2v_model, model, threshold, "labeled-"+mode+"-"+nr  )
