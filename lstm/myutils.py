@@ -1,3 +1,4 @@
+from keras.layers.recurrent import LSTM
 from keras.datasets import imdb
 from keras.models import Sequential
 from keras.layers import Dense
@@ -575,7 +576,7 @@ def removeTripleN(tokenlist):
 
 
 
-def getgoodblocks(sourcecode,goodpositions,fullength):
+def getgoodblocks(sourcecode,goodpositions,fulllength):
   blocks = []
   if (len(goodpositions) > 0):
     for g in goodpositions:
@@ -770,10 +771,13 @@ def getblocksVisual(mode,sourcecode, badpositions,commentareas, fulllength,step,
                 if (len(token) > 1):                  
                   vectorlist = []                  
                   for t in token:
-                    if t in word_vectors.vocab and t != " ":
-                      vector = w2v_model[t]
-                      vectorlist.append(vector.tolist())   
-                      
+                      if t in w2v_model.wv and t != " ":
+                          vector = w2v_model.wv[t]
+                          # Pad the vector to have a length of 200
+                          padded_vector = \
+                          sequence.pad_sequences([vector], maxlen=200, padding='post', truncating='post')[0]
+                          vectorlist.append(padded_vector.tolist())
+
                   if len(vectorlist) > 0:
                       p = predict(vectorlist,model)
                       if p >= 0:
@@ -784,17 +788,21 @@ def getblocksVisual(mode,sourcecode, badpositions,commentareas, fulllength,step,
                           if p > 0.5:
                             color = "royalblue"
                             string = string + colored(focusarea,'cyan')
+                            #print("vulnerablePos (p > 0.5): ",string)
                           else:
                             string = string + colored(focusarea,'magenta')
                             color = "violet"
+                            #print("vulnerablePos (p < 0.5): ", string)
                             
                         else:
                           
                         
                           if p > threshold[0]:
                             color = "darkred"
+                            #print("color = darkred : ", focusarea)
                           elif p >  threshold[1]:
                             color = "red"
+                            #print("color = red : ", focusarea)
                           elif p >  threshold[2]:
                             color = "darkorange"
                           elif p >  threshold[3]:
@@ -823,25 +831,26 @@ def getblocksVisual(mode,sourcecode, badpositions,commentareas, fulllength,step,
                   string = string + focusarea
               else:
                 string = string + focusarea
-                
-        
-        
-            
-        try:
-          if len(focusarea) > 0:
-            d = ImageDraw.Draw(img)
-#            print(list(focusarea))
-            if focusarea[0] == "\n":
-              ypos = ypos + 11
-              xpos = 0
-              d.text((xpos, ypos), focusarea[1:], fill=color)
-              xpos = xpos + d.textsize(focusarea)[0]
-            else:
-              d.text((xpos, ypos), focusarea, fill=color)
-              xpos = xpos + d.textsize(focusarea)[0]
 
+        from PIL import ImageFont
+        # Define a font with a smaller size
+        small_font = ImageFont.truetype("arial.ttf", 10)  # Adjust the font size as needed
+
+        try:
+            if len(focusarea) > 0:
+                d = ImageDraw.Draw(img)
+                if focusarea[0] == "\n":
+                    ypos += 11  # Move to the next line
+                    xpos = 0
+                else:
+                    d.text((xpos, ypos), focusarea, fill=color, font = small_font)
+                    try:
+                        char_width, char_height = d.textsize(focusarea, font = small_font)
+                        ypos += char_height  # Move to the next line
+                    except AttributeError:
+                        ypos += 11  # Fallback for textsize method not available, move to the next line
         except Exception as e:
-          print(e)
+            print(e)
 
         if ("\n" in sourcecode[focus+1:focus+7]):
           lastfocus = focus
@@ -885,6 +894,10 @@ def getIdentifiers(mode,nr):
       rep = "onewyoming/onewyoming"
       com = "54fc7b076fda2de74eeb55e6b75b28e09ef231c2"
       myfile = "/experimental/python/buford/model/visitor.py"
+    elif nr == "4":
+      rep = "mantaleigh/SHE-nonymous"
+      com = "c5abf0b5406753bd1dabba8ef0c5aed0f7e33eb5"
+      myfile = "/answerQuestions.py"
   if mode == "xss":
     if nr == "1":
       rep = "AMfalme/Horizon_Openstack"
