@@ -6,7 +6,7 @@ import subprocess
 import torch
 from transformers import AutoTokenizer
 from utils import (ModelType, get_model, get_prompt_prefix,
-                   generate_and_write_fixed_code)
+                   generate_and_write_fixed_code, get_model_type)
 from data.process.utils import read_patches, get_filename_from_patch, download_vulnerable_file, get_github_client
 
 
@@ -18,26 +18,26 @@ def main():
         epilog=''
     )
 
-    parser.add_argument('-v', '--vulnerability', type=str, required=True, default='sql_injection',
+    parser.add_argument('-v', '--vulnerability', type=str, default='sql_injection',
                         help='Vulnerability type need to be repaired, default is sql_injection')
     parser.add_argument('-l', '--lang', type=str, default='python',
                         help='programming language need to be repaired, default is python')
-    parser.add_argument('-n', '--num_test', required=True, type=int, default=50,
+    parser.add_argument('-n', '--num_test', type=int, default=50,
                         help='number of tested repo')
-    parser.add_argument('-m', '--model_name', required=True, type=str, default='Salesforce/codet5-small',
+    parser.add_argument('-m', '--model_name', type=str, default='Salesforce/codet5-small',
                         help='model need to be trained, default is Salesforce/codet5-small')
-    parser.add_argument('-t', '--model_type', required=True, type=str, default='t5',
+    parser.add_argument('-t', '--model_type', type=str, default='t5',
                         help='model type needed to be tested or trained. '
                              'It will used to initialized tokenizer from huggingface, default is t5. Use causal for '
                              'casualLM')
-    parser.add_argument('--model_tuned', required=True, type=bool, default=False,
+    parser.add_argument('--model_tuned', type=bool, default=False,
                         help='Check if the model is tuned or using the raw models from huggingface')
     parser.add_argument('--model_path', type=str,
                         help='The path of the trained model. If not provided, it will assume stored '
                              'under the default output directory of the training scripts')
     parser.add_argument('--train_ratio', type=float, default=0.6,
                         help='Indicate the usage of selected data should be used for training, default is 0.6.')
-    parser.add_argument('--val_ratio', type=float, default=0.6,
+    parser.add_argument('--val_ratio', type=float, default=0.2,
                         help='Indicate the usage of selected data should be used for validation, default is 0.2.')
     parser.add_argument('--token', type=str, required=True,
                         help='Personal github token to download files')
@@ -50,7 +50,7 @@ def main():
     num_tests = args.num_test
     train_and_valid_ratio = args.train_ratio + args.val_ratio
     target_model_name = args.model_name
-    model_type = ModelType[args.model_type]
+    model_type = get_model_type(args.model_type)
     token = args.token
     github_client = get_github_client(token)
 
@@ -146,7 +146,6 @@ def main():
             if not os.path.isdir(os.path.join(target_fix_path, file)):
                 if file.endswith('.py') or file.endswith('.tpl'):
                     shutil.move(target_fix_path + file, no_error_files_path + file)
-                    ref = file[:5]
                     runnable_files.add(file)
                     num_runnable_files += 1
                 else:
@@ -177,3 +176,7 @@ def main():
 
     print("*******************************************************************")
     print("Processed {} files with {} is runnable".format(num_processed_files, num_runnable_files))
+
+
+if __name__ == "__main__":
+    main()

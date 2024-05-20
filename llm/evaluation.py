@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer
 from utils import (convert_to_dataset, max_new_token_length,
                    text_column, label_column, ModelType, get_model,
-                   print_metrics, get_prompt_prefix, inference_compare_code)
+                   print_metrics, get_prompt_prefix, inference_compare_code, get_model_type)
 from data.process.utils import read_prompts
 
 
@@ -15,13 +15,13 @@ def main():
         epilog=''
     )
 
-    parser.add_argument('-v', '--vulnerability', type=str, required=True, default='sql_injection',
+    parser.add_argument('-v', '--vulnerability', type=str, default='sql_injection',
                         help='vulnerability type need to be repaired, default is sql_injection')
     parser.add_argument('-l', '--lang', type=str, default='python',
                         help='programming language need to be repaired, default is python')
-    parser.add_argument('-m', '--model_name', required=True, type=str, default='Salesforce/codet5-small',
+    parser.add_argument('-m', '--model_name', type=str, default='Salesforce/codet5-small',
                         help='model need to be trained, default is Salesforce/codet5-small')
-    parser.add_argument('-t', '--model_type', required=True, type=str, default='t5',
+    parser.add_argument('-t', '--model_type', type=str, default='t5',
                         help='model type needed to be tested or trained. '
                              'It will used to initialized tokenizer from huggingface, default is t5. Use causal for '
                              'casualLM')
@@ -34,7 +34,7 @@ def main():
 
     args = parser.parse_args()
     model_name = args.model_name
-    model_type = ModelType[args.model_type]
+    model_type = get_model_type(args.model_type)
     vulnerability = args.vulnerability
     lang = args.lang
     save_directory = "llm/models/{}".format(vulnerability + "-" + model_name)
@@ -73,3 +73,7 @@ def main():
     print("##################" + "Raw model output metrics" + "##################")
 
     print_metrics(references, baseline_predictions, lang)
+
+
+if __name__ == "__main__":
+    main()

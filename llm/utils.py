@@ -23,6 +23,17 @@ class ModelType(Enum):
     AUTO = "auto"
 
 
+def get_model_type(type_name):
+    if type_name == "t5":
+        return ModelType.T5_CONDITIONAL_GENERATION
+    elif type_name == "casual":
+        return ModelType.CAUSAL_LM
+    elif type_name == "auto":
+        return ModelType.AUTO
+    else:
+        raise ValueError(f"Unknown model type {type_name}")
+
+
 def convert_to_dataset(prompts, labels, train_ratio=0.6, val_ratio=0.2, data_usage_ratio=1.0):
     total_prompts = len(prompts) * data_usage_ratio
 

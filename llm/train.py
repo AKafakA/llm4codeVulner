@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer
 from utils import (convert_to_dataset, get_dataloader, inference_compare_code,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer,
-                   print_metrics, get_prompt_prefix, max_new_token_length)
+                   print_metrics, get_prompt_prefix, max_new_token_length, get_model_type)
 from data.process.utils import read_prompts
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
@@ -18,15 +18,15 @@ def main():
         epilog=''
     )
 
-    parser.add_argument('-v', '--vulnerability', type=str, required=True, default='sql_injection',
+    parser.add_argument('-v', '--vulnerability', type=str, default='sql_injection',
                         help='Vulnerability type need to be repaired, default is sql_injection')
     parser.add_argument('-l', '--lang', type=str, default='python',
                         help='programming language need to be repaired, default is python')
-    parser.add_argument('-e', '--training_epochs', required=True, type=int, default=20,
+    parser.add_argument('-e', '--training_epochs', type=int, default=20,
                         help='number of training epochs')
-    parser.add_argument('-m', '--model_name', required=True, type=str, default='Salesforce/codet5-small',
+    parser.add_argument('-m', '--model_name', type=str, default='Salesforce/codet5-small',
                         help='model need to be trained, default is Salesforce/codet5-small')
-    parser.add_argument('-t', '--model_type', required=True, type=str, default='t5',
+    parser.add_argument('-t', '--model_type', type=str, default='t5',
                         help='model type needed to be tested or trained. '
                              'It will used to initialized tokenizer from huggingface, default is t5. Use causal for '
                              'casualLM')
@@ -56,7 +56,7 @@ def main():
     use_deepspeed = args.use_deepspeed
     use_lora = args.use_lora
     model_name = args.model_name
-    model_type = ModelType[args.model_type]
+    model_type = get_model_type(args.model_type)
     device = "cuda:0" if torch.cuda.is_available() and accelerator == 'gpu' else "cpu"
     prompt_prefix = get_prompt_prefix(vulnerability, lang)
 
@@ -117,3 +117,7 @@ def main():
         print("##################" + "Raw model output metrics" + "##################")
 
         print_metrics(references, baseline_predictions, lang)
+
+
+if __name__ == "__main__":
+    main()
