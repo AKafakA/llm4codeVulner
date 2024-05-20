@@ -2,9 +2,9 @@ import argparse
 
 import torch
 from transformers import AutoTokenizer
-from utils import (convert_to_dataset, get_dataloader, max_new_token_length,
+from utils import (convert_to_dataset, get_dataloader, inference_compare_code,
                    text_column, label_column, ModelType, get_model, get_pytorch_trainer,
-                   print_metrics, get_prompt_prefix)
+                   print_metrics, get_prompt_prefix, max_new_token_length)
 from data.process.utils import read_prompts
 from pytorch_lightning.callbacks import LearningRateMonitor
 from code_model import CodeModel
@@ -38,7 +38,7 @@ def main():
                         help='Indicate how the total data usage should be used, default is 1.0')
     parser.add_argument('--train_ratio', type=float, default=0.6,
                         help='Indicate the usage of selected data should be used for training, default is 0.6.')
-    parser.add_argument('--val_ratio', type=float, default=0.6,
+    parser.add_argument('--val_ratio', type=float, default=0.2,
                         help='Indicate the usage of selected data should be used for validation, default is 0.2.')
     parser.add_argument('--enable_evaluation', type=bool, default=True,
                         help='Also run the evaluation to print the metrics')
@@ -53,7 +53,6 @@ def main():
     lr = 5e-5
     enable_parallelism_tokenizer = False
     enable_evaluation = args.enable_evaluation
-    save_output = False
     use_deepspeed = args.use_deepspeed
     use_lora = args.use_lora
     model_name = args.model_name
@@ -104,12 +103,12 @@ def main():
         predictions = []
         baseline_predictions = []
         for test_example in test_dataset:
-            input_ids = tokenizer(prompt_prefix + test_example[text_column], return_tensors='pt').input_ids.to(device)
-            output = trained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-            baseline_output = untrained_model.generate(input_ids, max_new_tokens=max_new_token_length)
-            references.append(test_example[label_column])
-            predictions.append(tokenizer.decode(output[0], skip_special_tokens=True))
-            baseline_predictions.append(tokenizer.decode(baseline_output[0], skip_special_tokens=True))
+            inference_compare_code(target_tokenizer=tokenizer, baseline_tokenizer=tokenizer,
+                                   prompt_prefix=prompt_prefix,
+                                   prompt=test_example[text_column], label=test_example[label_column],
+                                   target_model=trained_model, baseline_model=untrained_model, device=device,
+                                   references=references, predictions=predictions,
+                                   baseline_predictions=baseline_predictions, max_new_tokens=max_new_token_length)
 
         print("##################" + "Train model output metrics" + "##################")
 

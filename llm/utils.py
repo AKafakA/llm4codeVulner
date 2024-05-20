@@ -156,3 +156,15 @@ def generate_and_write_fixed_code(model, source_code, tokenizer, prompt_prefix, 
     for prompt, fix in rep.items():
         fixed_code = fixed_code.replace(prompt, fix)
     return fixed_code
+
+
+def inference_compare_code(prompt, label, prompt_prefix, target_model, baseline_model, target_tokenizer,
+                           baseline_tokenizer, references, predictions, baseline_predictions,
+                           max_new_tokens, device='cpu'):
+    input_ids = target_tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids.to(device)
+    output = target_model.generate(input_ids, max_new_tokens=max_new_tokens)
+    baseline_input_ids = baseline_tokenizer(prompt_prefix + prompt, return_tensors='pt').input_ids.to(device)
+    baseline_output = baseline_model.generate(baseline_input_ids, max_new_tokens=max_new_tokens)
+    references.append(label)
+    predictions.append(target_tokenizer.decode(output[0], skip_special_tokens=True))
+    baseline_predictions.append(baseline_tokenizer.decode(baseline_output[0], skip_special_tokens=True))
