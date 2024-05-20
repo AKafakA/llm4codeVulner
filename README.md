@@ -64,7 +64,7 @@ python llm/evaluation.py -v sql_injection -l python -t t5 -m Salesforce/codet5-s
 To run the LSTM only to detect the vulnerability showed as Fig 2, pleasue run 
 
 ```LSTM 
-python demonstrate_labeled --vulnerability
+python demonstrate_labeled.py [vulnerability, like sql] [severity level, 4 is used for our results]
 ```
 
 ## Pre-trained Models
