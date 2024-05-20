@@ -39,6 +39,7 @@ if not enable_parallelism_tokenizer:
 save_directory = "llm/models/{}".format(vulnerability + "-" + model_name)
 data_file = "data/{}.json".format(vulnerability)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token
 
 prompts, labels = read_prompts(data_file)
 train_dataset, validation_dataset, test_dataset = convert_to_dataset(prompts, labels, data_usage_ratio=data_usage_ratio)

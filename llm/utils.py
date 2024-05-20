@@ -140,12 +140,8 @@ def print_metrics(references, predictions, lang):
 
 
 def get_prompt_prefix(vulnerability, lang):
-    prompt_prefix = ("Please help to Fix this {} code snippet with potential {} vulnerability "
-                     "and output the repaired code only: ").format(lang, vulnerability)
-    if vulnerability.startswith("sql"):
-        prompt_prefix = ("Please help to Fix this SQL or {} as part of {} code snippet"
-                         "with potential SQL Injection vulnerability "
-                         "and output the repaired code only: : ").format(lang, lang, vulnerability)
+    vulnerability = vulnerability.replace("_", " ")
+    prompt_prefix = "Fix this {} code snippet with possible {} vulnerability: ".format(lang, vulnerability)
     return prompt_prefix
 
 

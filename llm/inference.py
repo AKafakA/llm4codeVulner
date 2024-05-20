@@ -41,8 +41,8 @@ baseline_prediction_path = "data/test/{}/baseline_prediction.txt".format(vulnera
 
 ###############################################################
 # input for sanity check
-test_examples = [""]
-# test_examples = ["WHERE parent_id IN ({list_root_ids}"]
+# test_examples = [""]
+test_examples = ["WHERE parent_id IN ({list_root_ids}"]
 ############################################################
 
 if test_type == TestType.BATCH:
@@ -65,6 +65,6 @@ elif test_type == TestType.SANITY:
         output = target_model.generate(input_ids, max_new_tokens=max_new_token_length)
         print("Target model output :", target_tokenizer.decode(output[0], skip_special_tokens=True))
         baseline_input_ids = baseline_tokenizer(prompt_prefix + test_example, return_tensors='pt').input_ids
-        baseline_output = baseline_model.generate(baseline_input_ids, return_tensors='pt')
+        baseline_output = baseline_model.generate(baseline_input_ids, max_new_tokens=max_new_token_length)
         print("Baseline model output :", baseline_tokenizer.decode(output[0], skip_special_tokens=True))
 

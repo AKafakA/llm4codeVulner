@@ -26,9 +26,10 @@ github_client = get_github_client(token)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 prompt_prefix = get_prompt_prefix(vulnerability, lang)
 target_tokenizer = AutoTokenizer.from_pretrained(target_model_name)
+target_tokenizer.pad_token = target_tokenizer.eos_token
 save_directory = None
 # save_directory = "llm/models/{}".format(vulnerability + "-" + target_model_name)
-target_model = get_model(target_model_name, model_type, save_path=save_directory)
+target_model = get_model(target_model_name, model_type, save_path=save_directory, device=device)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 prompt_data_file = "data/{}.json".format(vulnerability)
 saved_buggy_files_path = "data/buggy_files/" + vulnerability + '/'
@@ -36,7 +37,7 @@ saved_buggy_files_code_path = "data/buggy_files/" + vulnerability + '/code/'
 
 if os.path.exists(saved_buggy_files_path):
     shutil.rmtree(saved_buggy_files_path)
-    os.makedirs(saved_buggy_files_path)
+os.makedirs(saved_buggy_files_path)
 
 # commits_file = 'data/fix_with_runnable_commits_record.txt'
 commits_file = ''
@@ -52,7 +53,7 @@ target_fix_path = fixed_directory + "target_fix/"
 
 if os.path.exists(target_fix_path):
     shutil.rmtree(target_fix_path)
-    os.makedirs(target_fix_path)
+os.makedirs(target_fix_path)
 
 
 records = read_patches(prompt_data_file)
@@ -85,7 +86,7 @@ for record in test_records:
                   open(target_file_name, "w+") as target):
                 source_code = f.read()
                 target_code = generate_and_write_fixed_code(target_model, source_code, target_tokenizer,
-                                                            prompt_prefix, prompts)
+                                                            prompt_prefix, prompts, device=device)
                 target.write(target_code)
 
 result = subprocess.run(["bandit", "-r", target_fix_path], capture_output=True, text=True)
