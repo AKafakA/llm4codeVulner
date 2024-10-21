@@ -8,6 +8,9 @@ vulnerability = "sql_injection"
 data_file = "data/{}.json".format(vulnerability)
 output_path = "data/buggy_files/" + vulnerability
 
+if not os.path.exists(output_path):
+    os.makedirs(os.path.join(output_path))
+
 token = ""
 g = get_github_client(token)
 
