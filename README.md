@@ -24,6 +24,12 @@ cd GITHUB_DIR/
 conda env create -f environment/environment.yml
 conda activate llm
 ```
+
+or install all packages by pip 
+
+```
+pip install pytorch_lightning tree_sitter==0.21.3 code_bert_score transformers torch pyGithub
+```
 All the training data stored as GITHUP API responses has been included under the data files.
 
 Besides running the code at local or remote server, we also use the google-colab to quickly test our results with partial data. The colab scripts can be found at 
